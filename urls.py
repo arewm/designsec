@@ -2,15 +2,10 @@ from django.conf.urls import url
 from . import views
 
 urlpatterns = [
-    # url(r'^$', views.consent, name='index'),
-    # url(r'^consent', views.consent, name='consent'),
-    # url(r'^tutorial', views.tutorial, name='tutorial'),
-    # url(r'^policy', views.policy, name='policy'),
-    # url(r'^submit_policy', views.submit_policy, name='submit_policy'),
-    # url(r'^custom_tag', views.custom_tag, name='custom_tag'),
-    # url(r'^rank', views.rank, name='rank'),
-    # url(r'^save_rank', views.save_rank, name='save_rank'),
-    # url(r'^gen', views.gen, name='generator'),
-    # url(r'^thankyou', views.end, name='end'),
-    # url(r'^pMakeSystem', views.add_system_policy, name='policymaker'),
+    url(r'^$', views.generate_default_view, name='default'),
+    url(r'^(?P<project>[0-1a-zA-Z_\-])/?$', views.generate_project_view, name='project'),
+    url(r'^(?P<project>[0-1a-zA-Z_\-])/sort$', views.generate_recommendation_by_category, name='generate_recommendation'),
+    url(r'^admin/?$', views.create_new_project, name='create_project'),
+    url(r'^admin/(?P<project>[0-1a-zA-Z_\-])/?$', views.edit_project, name='edit_project'),
+    url(r'^admin/list/?$', views.list_projects, name='list'),
 ]

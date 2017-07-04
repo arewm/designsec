@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ project_name }} Recommendations</title>
+
+    <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+    <script src="/static/design-sec/js/main.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="/static/design-sec/css/main.css"></script>
+</head>
+<body>
+    {% if notice %}
+        <div id="site-notice">{{ notice }}</div>
+    {% endif %}
+    <div id="project-description">
+        {{ s_list.description }}
+    </div>
+    <div id="project-threat">
+        {{ s_list.trust }}
+    </div>
+    <form id="category-selector" action="{% url 'generate_category' %}" method="post">
+        {% csrf_token %}
+        <input type="hidden" name="category" value="" />
+    </form>
+    Order recommendations by:
+    {% for c in category %}
+        <div id="category-{{ c }}" name="{{ c }}" class="category-sort">{{ c }}</div>
+    {% endfor %}
+
+    <div id="list">
+        {{ text }}
+    </div>
+</body>
+</html>
