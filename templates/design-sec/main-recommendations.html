@@ -1,11 +1,17 @@
-
-{% for i in s_list %}
-<div>
-  <div class="panel-heading">
-    <strong>{{ i.name }}</strong>
-  </div>
-  <div class="panel-body">
-    {{ i.description }}
-  </div>
-</div>
+{% for classification, recommendations in rec_list %}
+    <div>
+        <div class="panel-heading; text-capitalize">
+            <strong>{{ classification }}</strong>
+        </div>
+        <div class="panel-body">
+            {% for r in recommendations %}
+                <div class="panel-heading; text-capitalize">
+                    {{ r.name }}
+                </div>
+                <div class="panel-body">
+                    {{ r.description }}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
 {% endfor %}

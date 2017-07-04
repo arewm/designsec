@@ -25,8 +25,8 @@ class Recommendation(models.Model):
     def __str__(self):
         return '{} --> {}'.format(str(self.classification), self.name)
 
-class SecurityList(models.Model):
-    list_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+class Project(models.Model):
+    pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     contact = models.EmailField(default=None)
     description = models.TextField(default=None)
