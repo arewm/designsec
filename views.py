@@ -32,6 +32,7 @@ def get_recommendation_by_category(cat=None, p_uid=None):
                   all recommendations.
     :return: A list of classification, recommendation list tuples
     """
+    # todo a recommendation can potentially have more than one classification within a single category. Make sure this works
     if p_uid is None:
         lst = Recommendation.objects.all()
     else:
@@ -88,7 +89,7 @@ def generate_default_view(request, notice=None):
                'trust': '',
                'category': Category.objects.all(),
                'rec_list': get_recommendation_by_category()}
-    return render(request, 'design-sec/main.html', context)
+    return render(request, 'designsec/main.html', context)
 
 
 def generate_recommendation_by_category(request, project=None):
@@ -100,7 +101,7 @@ def generate_recommendation_by_category(request, project=None):
     """
     # todo complete this
     context = {'rec_list': get_recommendation_by_category(cat=request.POST.get('category', None), p_uid=project)}
-    return render(request, 'design-sec/main-recommendations.html', context)
+    return render(request, 'designsec/main-recommendations.html', context)
 
 
 def generate_project_view(request, project):
@@ -130,7 +131,7 @@ def generate_project_view(request, project):
                'category': Category.objects.all(),
                'rec_list': get_recommendation_by_category(p_uid=p_uid),
                'pid': project}
-    return render(request, 'design-sec/main.html', context)
+    return render(request, 'designsec/main.html', context)
 
 
 # todo create a helper function similar to get_recommendation_by_category for the default view (?) -- this might just be done with html
