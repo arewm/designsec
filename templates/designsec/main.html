@@ -9,43 +9,68 @@
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <script src="/static/designsec/css/main.css"></script>
+    <link rel="stylesheet" href="/static/designsec/css/main.css">
 </head>
 <body>
+<div id="content">
+{# Display a notice at the top of the page if there is one #}
+<div id="top-wrapper">
 {% if notice %}
-    <div id="site-notice">{{ notice }}</div>
+    {% autoescape off %}
+        <div id="site-notice" class="alert alert-warning">{{ notice }}</div>
+    {% endautoescape %}
 {% endif %}
-<div id="project-description" class="text-block">
-    {{ description }}
+{# Display the project description and threat model next on the page #}
+{% if project %}
+    <h1 class="text-capitalize">{{ project.name }}</h1>
+    <h3>Project description</h3>
+    <blockquote id="project-description">
+        {{ project.description }}
+    </blockquote>
+    <h3>Threat model</h3>
+    <blockquote id="project-threat" >
+        {{ project.trust }}
+    </blockquote>
+    <div id="contact">Knox security contact: <a href="mailto:{{ project.contact }}">{{ project.contact }}</a></div>
+    <div id="updated">Last updated: {{ project.modified }}</div>
+{% endif %}
 </div>
-<div id="project-threat" class="text-block">
-    {{ trust }}
-</div>
-{% if contact %}
-    <div id="contact">Knox security contact: <a href="mailto:{{ contact }}">{{ contact }}</a></div>
-{% endif %}
-{% if updated %}
-    <div id="updated">Last updated: {{ updated }}</div>
-{% endif %}
-<form id="category-selector" action="{% url 'generate_category' %}" method="post">
-    {% csrf_token %}
-    <input id="category-sort" type="hidden" name="category" value=""/>
-</form>
-Order recommendations by:
-{% for c in category %}
-    <div id="category-{{ c }}" class="category-sort">{{ c }}</div>
-{% endfor %}
 
-<div id="recommendations">
+<div id="main-wrapper">
+Order recommendations by:
+<ul id="category-sorters" class="nav nav-tabs">
+    {% for c in category %}
+        <li class="category-sort" id="category-{{ c.id }}" data-toggle="tooltip" title="{{ c.help }}">
+            <a href="#">{{ c.name }}</a></li>
+    {% endfor %}
+</ul>
+
+<div id="recommendations" class="panel-group">
     {% if pid %}
-    <form id="list-maker" action="{% url 'project_sort' project=pid %}" method="post">
-        {% csrf_token %}
-    </form>
+        <form id="list-maker" action="{% url 'project_sort' project=pid %}" method="post">
+            {% csrf_token %}
+        </form>
     {% else %}
-    <form id="list-maker" action="{% url 'default_sort' %}">
-        {% csrf_token %}
-    </form>
+        <form id="list-maker" action="{% url 'default_sort' %}">
+            {% csrf_token %}
+        </form>
     {% endif %}
 </div>
+</div>
+</div>
+
+{# Hidden forms to use for sorting the recommendations #}
+{% if pid %}
+    <form id="category-selector" action="{% url 'project_sort' project=pid %}" method="post">
+        {% csrf_token %}
+        <input id="category-sort" type="hidden" name="category" value=""/>
+    </form>
+{% else %}
+    <form id="category-selector" action="{% url 'default_sort' %}" method="post">
+        {% csrf_token %}
+        <input id="category-sort" type="hidden" name="category" value=""/>
+    </form>
+{% endif %}
+
 </body>
 </html>

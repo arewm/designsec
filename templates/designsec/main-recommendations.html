@@ -1,11 +1,11 @@
 {% for classification, recommendations in rec_list %}
-    <div>
-        <div class="panel-heading; text-capitalize">
+    <div class="panel panel-info">
+        <div class="panel-heading">
             <strong>{{ classification }}</strong>
         </div>
         <div class="panel-body">
             {% for r in recommendations %}
-                <div class="panel-heading; text-capitalize">
+                <div class="panel-heading">
                     {{ r.name }}
                 </div>
                 <div class="panel-body">

@@ -1,5 +1,5 @@
 from django.apps import AppConfig
 
 
-class SurveyConfig(AppConfig):
+class DesignsecConfig(AppConfig):
     name = 'designsec'

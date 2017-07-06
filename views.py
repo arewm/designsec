@@ -15,53 +15,66 @@
 
 import uuid
 
-from django.shortcuts import render, redirect, get_object_or_404
-from django.http import JsonResponse, HttpResponse, Http404
+from django.http import Http404
+from django.shortcuts import render, get_object_or_404
+
+from designsec.models import Category, Recommendation, Project
+
+
 # from django.db.models import Q
 # from django.forms.models import model_to_dict
-
-from .models import Category, Recommendation, Project
 
 
 def get_recommendation_by_category(cat=None, p_uid=None):
     """
     Get a list of recommendations based on the desired category for a project
-    :param cat: The recommendation category to sort based on. If none provided, we they will be sorted based on the
-                first category in the database.
+    :param cat: The id of the recommendation category to sort based on. If none provided, we they will be presented in
+                the 'All' category.
     :param p_uid: The project uuid that we are getting the recommendations from. If none provided, we will get
                   all recommendations.
     :return: A list of classification, recommendation list tuples
     """
-    # todo a recommendation can potentially have more than one classification within a single category. Make sure this works
-    if p_uid is None:
+    try:
+        p = get_object_or_404(Project, pid=p_uid)
+        lst = p.item.all()
+    except Http404:
         lst = Recommendation.objects.all()
-    else:
-        lst = Project.objects.filter(pid=p_uid).values('item').distinct()
 
     rec_dict = dict()
-    cat_obj = Category.objects.filter(name=cat)
+    try:
+        cat_obj = get_object_or_404(Category, id=cat)
+    except Http404:
+        # If we do not have a valid category, just get the first one defined.
+        cat_obj = get_object_or_404(Category, name='All')
     # If we do not have a valid category, just get the first one defined.
-    if not cat_obj or cat_obj is None:
-        cat_obj = Category.objects.limit(1)
+    #if not cat_obj or cat_obj is None:
+    #    cat_obj = Category.objects.all()[0]
     # Get the defined classifications for the desired category
     for c in cat_obj.classification_set.order_by('name'):
         rec_dict[c.name] = []
 
-    # sort based on the category. If items have no classification for the category, put them in 'Not Classified'
+    # sort the recommendations based on the category classifications
     not_classified = []
     for l in lst:
-        if l.classification.name is not None:
-            rec_dict[l.classification.name].append(l)
-        else:
+        classes = l.classification.filter(category=cat_obj)
+        # if the recommendation does not match our category, it is not classified
+        if not classes:
             not_classified.append(l)
+        # otherwise, put it in the proper dictionary place
+        else:
+            for c in classes:
+                rec_dict[c.name].append(l)
     # remove any entries that have no values
     # and convert the rest from a dictionary
     classification_list = []
+    popper=[]
     for k, v in rec_dict.items():
         if not v:
-            rec_dict.pop(k)
+            popper.append(k)
         else:
             classification_list.append((k, v))
+    for p in popper:
+        rec_dict.pop(p)
 
     # sort the list based on the classification and put any non-classified recommendations at the end
     classification_list.sort(key=lambda x: x[0])
@@ -79,10 +92,10 @@ def generate_default_view(request, notice=None):
     :return:
     """
     if notice is None:
-        notice = 'Since no project was selected, all recommendations are displayed. '
+        notice = 'Since no project was selected, all possible recommendations are displayed. '
         notice += 'To customize the recommendations for  your project, contact a member of '
         notice += '<a href="mailto:knox_security@samsung.com?Subject=Security%20recommendation%20request">'
-        notice += 'Knox Security</a>'
+        notice += 'Knox Security</a> to begin a security review.'
 
     context = {'notice': notice,
                'description': '',
@@ -112,22 +125,20 @@ def generate_project_view(request, project):
     :return: The rendered webpage
     """
     # todo keep track of the number of views and the last view as long as an admin is not logged in (maybe?)
+    # todo allow a specific sorting to be permalinked
 
     p_uid = uuid.UUID(project)
     try:
         p = get_object_or_404(Project, pid=p_uid)
     except Http404:
-        notice = 'Unable to find the reference locator {}. All recommendations are displayed. '.format(project)
+        notice = '<strong>Unable to find the reference locator {}.</strong><br />All recommendations are displayed. '.format(project)
         notice += 'Please contact a member of <a href="mailto:knox_security@samsung.com'
         notice += '?Subject=Security%20recommendation%20bad%20pid{}">'.format(project)
         notice += 'Knox Security</a> if you believe this is a mistake.'
         return generate_default_view(request, notice=notice)
 
     context = {'notice': False,
-               'description': p.description,
-               'trust': p.trust,
-               'contact': p.contact,
-               'updated': p.modified,
+               'project': p,
                'category': Category.objects.all(),
                'rec_list': get_recommendation_by_category(p_uid=p_uid),
                'pid': project}
@@ -137,6 +148,8 @@ def generate_project_view(request, project):
 # todo create a helper function similar to get_recommendation_by_category for the default view (?) -- this might just be done with html
 
 # todo create a function & url to save a category/classification/recommendation (and how this will be displayed) -- use a modal?
+
+# todo when adding a recommendation/classification, make sure to add it to the 'All' category!
 
 def create_new_project(request):
     """
