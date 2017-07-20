@@ -1,3 +1,10 @@
+function toggleIcon(e) {
+    $(e.target)
+        .prev('.panel-heading')
+        .find('.more-less')
+        .toggleClass('glyphicon-plus glyphicon-minus');
+}
+
 $(document).ready(function () {
     var listLoader = $('#list-maker');
     $.ajax({
@@ -28,6 +35,9 @@ $(document).ready(function () {
                 $('#category-sorters').find('li.active').removeClass('active');
                 selection.addClass('active');
 
+                // register the new show/hide clicks
+                $('.panel-group').on('hide.bs.collapse', toggleIcon);
+                $('.panel-group').on('show.bs.collapse', toggleIcon);
             },
             error: function (data) {
                 alert("Something went wrong!" + data);

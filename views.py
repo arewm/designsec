@@ -17,12 +17,14 @@ import uuid
 
 from django.http import Http404
 from django.shortcuts import render, get_object_or_404
+from django.utils.safestring import mark_safe
 
-from designsec.models import Category, Recommendation, Project
+from designsec.models import Category, Recommendation, Project, Contact
 
 
 # from django.db.models import Q
 # from django.forms.models import model_to_dict
+knox = Contact.objects.filter(name='Knox Security')[0]
 
 
 def get_recommendation_by_category(cat=None, p_uid=None):
@@ -51,35 +53,30 @@ def get_recommendation_by_category(cat=None, p_uid=None):
     #    cat_obj = Category.objects.all()[0]
     # Get the defined classifications for the desired category
     for c in cat_obj.classification_set.order_by('name'):
-        rec_dict[c.name] = []
+        rec_dict[c.name] = (c,[])
 
     # sort the recommendations based on the category classifications
-    not_classified = []
     for l in lst:
         classes = l.classification.filter(category=cat_obj)
-        # if the recommendation does not match our category, it is not classified
-        if not classes:
-            not_classified.append(l)
-        # otherwise, put it in the proper dictionary place
-        else:
-            for c in classes:
-                rec_dict[c.name].append(l)
+        # if the recommendation exists in the desired category, save it with the classification
+        for c in classes:
+            rec_dict[c.name][1].append((l, Category.objects.filter(classification__recommendation=l).order_by('name')))
     # remove any entries that have no values
     # and convert the rest from a dictionary
     classification_list = []
     popper=[]
     for k, v in rec_dict.items():
-        if not v:
+        if not v[1]:
             popper.append(k)
         else:
-            classification_list.append((k, v))
+            classification_list.append((k, v[0], v[1]))
     for p in popper:
         rec_dict.pop(p)
 
-    # sort the list based on the classification and put any non-classified recommendations at the end
+    # sort the list based on the classification and the recommendation
     classification_list.sort(key=lambda x: x[0])
-    if not_classified:
-        classification_list.append(('Not classified', not_classified))
+    # sort the recommendations for each classification
+    [r[2].sort(key=lambda x: x[0].name) for r in classification_list]
 
     return classification_list
 
@@ -92,10 +89,9 @@ def generate_default_view(request, notice=None):
     :return:
     """
     if notice is None:
-        notice = 'Since no project was selected, all possible recommendations are displayed. '
+        notice = 'No project was selected. All possible recommendations are displayed. '
         notice += 'To customize the recommendations for  your project, contact a member of '
-        notice += '<a href="mailto:knox_security@samsung.com?Subject=Security%20recommendation%20request">'
-        notice += 'Knox Security</a> to begin a security review.'
+        notice += '{} to begin a security review.'.format(knox.mailto('Security recommendation request'))
 
     context = {'notice': notice,
                'description': '',
@@ -131,10 +127,9 @@ def generate_project_view(request, project):
     try:
         p = get_object_or_404(Project, pid=p_uid)
     except Http404:
+        subject = 'Security recommendation bad project id {}'.format(project)
         notice = '<strong>Unable to find the reference locator {}.</strong><br />All recommendations are displayed. '.format(project)
-        notice += 'Please contact a member of <a href="mailto:knox_security@samsung.com'
-        notice += '?Subject=Security%20recommendation%20bad%20pid{}">'.format(project)
-        notice += 'Knox Security</a> if you believe this is a mistake.'
+        notice += 'Please contact a member of {} if you believe this is a mistake'.format(knox.mailto(subject=subject))
         return generate_default_view(request, notice=notice)
 
     context = {'notice': False,
@@ -150,6 +145,8 @@ def generate_project_view(request, project):
 # todo create a function & url to save a category/classification/recommendation (and how this will be displayed) -- use a modal?
 
 # todo when adding a recommendation/classification, make sure to add it to the 'All' category!
+# todo when creating a recommendation, make sure that only one classification of each category exists
+#   if more than one category, present an error to be more specific and tailor it to one classification.
 
 def create_new_project(request):
     """
