@@ -70,6 +70,19 @@ body {
     color: #212121;
 }
 
+.panel-heading .expand-toggle:after {
+    /* symbol for "expanded" divs */
+    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
+    content: "\2212";    /* minus, taken from bootstrap.css */
+    float: right;
+    color: grey;
+}
+.panel-heading .expand-toggle.collapsed:after {
+    /* symbol for "collapsed" divs */
+    content: "\2b";    /* plus, taken from bootstrap.css */
+}
+
+
 /*.panel-default > .panel-heading + .panel-collapse > .panel-body {*/
     /*border-top-color: #EEEEEE;*/
 /*}*/

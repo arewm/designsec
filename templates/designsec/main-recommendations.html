@@ -2,10 +2,11 @@
     {# todo make these things with slide down, etc. using javascript #}
     <div class="panel panel-info">
         <div class="panel-heading">
-            <a role="button" data-toggle="collapse" href="#colC{{ classification.id }}">
-                <i class="more-less glyphicon glyphicon-minus"></i>
-                <strong>{{ classification.name }}</strong>
+            <h4 class="panel-title">
+            <a class="expand-toggle" role="button" data-toggle="collapse" href="#colC{{ classification.id }}">
+                {{ classification.name }}
             </a>
+                </h4>
         </div>
         <div id="colC{{ classification.id }}" class="collapse in" aria-expanded="true">
             <div class="panel-body">
@@ -15,10 +16,11 @@
                 {% for r, cl in recommendations %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
-                            <a role="button" data-toggle="collapse" href="#colR{{ r.id }}">
-                                <i class="more-less glyphicon glyphicon-minus"></i>
+                            <h4 class="panel-title">
+                            <a class="expand-toggle" role="button" data-toggle="collapse" href="#colR{{ r.id }}">
                                 {{ r.name }}
                             </a>
+                            </h4>
                             {#                        <span class="labels">#}
                             {#                        {% for c in cl %}#}
                             {#                            <span class="label label-default">{{ c.name }}</span>#}
