@@ -1,4 +1,4 @@
-
+modalError = "<p>Uh Oh, something went wrong! Please try refreshing the page. If the problem persists, contact <a href=\"mailto:knox_security@samsung.com\">Knox Security.</a></p>";
 $(document).ready(function () {
     var listLoader = $('#list-maker');
     $.ajax({
@@ -6,11 +6,12 @@ $(document).ready(function () {
         url: listLoader.attr('action'),
         data: listLoader.serialize(),
         success: function (data) {
-                $('#recommendations').html(data);
-                $('#category-sorters').children().first().addClass('active');
+            $('#recommendations').html(data);
+            $('#category-sorters').children().first().addClass('active');
         },
         error: function (data) {
-                alert("Something went wrong!" + data);
+            $('#errorModalText').html(modalError);
+            $('#errorModal').modal('show');
         }
     });
 
@@ -30,8 +31,12 @@ $(document).ready(function () {
                 selection.addClass('active');
             },
             error: function (data) {
-                alert("Something went wrong!" + data);
+                $('#errorModalText').html(modalError);
+                $('#errorModal').modal('show');
             }
         });
+    });
+    $('#reloadButton').on('click', function(e) {
+        window.location.reload();
     });
 });
