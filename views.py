@@ -15,12 +15,13 @@
 
 import uuid
 
-from django.http import Http404
-from django.shortcuts import render, get_object_or_404
+from django.contrib import messages
+from django.forms import modelformset_factory
+from django.http import Http404, JsonResponse
+from django.shortcuts import redirect, render, get_object_or_404
 from django.utils.safestring import mark_safe
 
-from designsec.models import Category, Recommendation, Project, Contact
-
+from designsec.models import Category, Recommendation, Project, Contact, ProjectForm
 
 # from django.db.models import Q
 # from django.forms.models import model_to_dict
@@ -81,20 +82,19 @@ def get_recommendation_by_category(cat=None, p_uid=None):
     return classification_list
 
 
-def generate_default_view(request, notice=None):
+def generate_default_view(request):
     """
     Generate the view that includes all recommendations without a project description.
     :param request: HTTP request object containing request metadata
-    :param notice: A notice to display at the top of the rendered page
     :return:
     """
-    if notice is None:
+    if not messages.get_messages(request):
         notice = 'No project was selected. All possible recommendations are displayed. '
         notice += 'To customize the recommendations for  your project, contact a member of '
         notice += '{} to begin a security review.'.format(knox.mailto('Security recommendation request'))
+        messages.add_message(request, messages.WARNING, notice)
 
-    context = {'notice': notice,
-               'description': '',
+    context = {'description': '',
                'trust': '',
                'category': Category.objects.all(),
                'rec_list': get_recommendation_by_category()}
@@ -130,10 +130,10 @@ def generate_project_view(request, project):
         subject = 'Security recommendation bad project id {}'.format(project)
         notice = '<strong>Unable to find the reference locator {}.</strong><br />All recommendations are displayed. '.format(project)
         notice += 'Please contact a member of {} if you believe this is a mistake'.format(knox.mailto(subject=subject))
-        return generate_default_view(request, notice=notice)
+        messages.add_message(request, messages.ERROR, notice)
+        return generate_default_view(request)
 
-    context = {'notice': False,
-               'project': p,
+    context = {'project': p,
                'category': Category.objects.all(),
                'rec_list': get_recommendation_by_category(p_uid=p_uid),
                'pid': project}
@@ -148,14 +148,40 @@ def generate_project_view(request, project):
 # todo when creating a recommendation, make sure that only one classification of each category exists
 #   if more than one category, present an error to be more specific and tailor it to one classification.
 
+def get_admin_recommendation_by_category(cat=None, p_uid=None):
+    """
+    Get a list of recommendations based on the desired category for a project
+    :param cat: The id of the recommendation category to sort based on. If none provided, we they will be presented in
+                the 'All' category.
+    :param p_uid: The project uuid that we are getting the recommendations from. If none provided, we will get
+                  all recommendations.
+    :return
+    """
+    pass
+
 def create_new_project(request):
     """
     ADMIN INTERFACE
 
+    When a project is created, the necessary info needs to be provided. This information is defined in
+    models.ProjectForm. If any fields do not pass validation, a JSON object will be returned with all of the error
+    messages. Upon successful project creation, the HTML document for a new list admin interface will be returned.
+
+    If you try to access this interface without a POST request, you will be redirected to the admin list interface.
+
     :param request: HTTP request object containing request metadata
-    :return:
+    :return: JSON object if unsuccessful, HTML document if successful
     """
-    pass
+    if request.method == "POST":
+        formset = ProjectForm(request.POST)
+        if formset.is_valid():
+            p = formset.save()
+            messages.add_message(request, messages.SUCCESS, 'Project created with id {}'.format(p.pid.hex))
+            return redirect('list')
+
+        else:
+            return JsonResponse(formset.errors.as_json(), safe=False)
+    return redirect('list')
 
 
 def edit_project(request, project):
@@ -166,16 +192,49 @@ def edit_project(request, project):
     :param project:
     :return:
     """
-    pass
+    # todo complete this, change from main.html
+    # todo when modifying a project, make sure that changes are applied before switching categories
+    # todo for each category, make a modal to create a new recommendation
+        # todo how do you handle when a recommendation is added and selections have been made?
+    p_uid = uuid.UUID(project)
+    try:
+        p = get_object_or_404(Project, pid=p_uid)
+    except Http404:
+        # This is not a valid project ID to edit, default to list_project
+        messages.add_message(request, messages.WARNING, "The project ID {} is invalid.".format(project))
+        return redirect('list')
+
+    context = {'project': p,
+               'category': Category.objects.all(),
+               'rec_list': get_recommendation_by_category(p_uid=p_uid),
+               'pid': project}
+    return render(request, 'designsec/main.html', context)
 
 
 def list_projects(request):
     '''
     ADMIN INTERFACE
 
-    List all projects along with their permalinks, creation date, updated date, number of views, and last visit
+    List all projects along with their permalinks, creation date, number of recommendations, updated date, number of
+    views, and last visit
     :param request: HTTP request object containing request metadata
     :return:
     '''
-    # todo allow this view to sort the projects in ascending/descending according to each field
-    pass
+    # todo provide an interface to edit/add contacts, make available as a modal from admin list
+    context = {'projects':[]}
+    for p in Project.objects.all():
+        pr = {}
+        pr['name'] = p.name
+        pr['pid_short'] = '{}...'.format(p.pid.hex[:8])
+        pr['pid'] = p.pid.hex
+        pr['added'] = p.added
+        pr['modified'] = p.modified
+        pr['contact'] = '; '.join([c.email.split('@')[0] for c in p.contact.order_by('email')])
+        pr['rec_count'] = p.item.count()
+        pr['last_visit'] = p.last_visit
+        context['projects'].append(pr)
+
+    #ProjectFormSet = modelformset_factory(Project, exclude=['item', 'visits', 'last_visit'])
+    context['contact_formset'] = ProjectForm()
+
+    return render(request, 'designsec/adminList.html', context)

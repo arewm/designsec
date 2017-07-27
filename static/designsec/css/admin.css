@@ -1,0 +1,144 @@
+body {
+    background-color: #e0e0e0;
+    width: 100%;
+    height: 100%;
+}
+
+#content {
+    margin: 0 1%;
+    height: 100%;
+    width: auto;
+}
+
+#top-wrapper {
+    background-color: #ffffff;
+    padding: 5px;
+    margin-bottom: 5px;
+}
+
+#site-notice {
+    margin-bottom: 0;
+}
+
+#main-wrapper {
+    background-color: #ffffff;
+    padding:5px;
+    margin-top: 5px;
+}
+
+.half-top {
+    width: 50%;
+    min-height: 50px;
+    float: left;
+    padding: 1%;
+}
+
+#recommendations {
+    clear: both;
+}
+
+.labels {
+    margin-left: 5px;
+}
+
+/*.panel-group .panel {*/
+    /*border-radius: 0;*/
+    /*box-shadow: none;*/
+    /*border-color: #eeeeee;*/
+/*}*/
+
+/*.panel-default > .panel-heading {*/
+    /*padding: 0;*/
+    /*border-radius: 0;*/
+    /*color: #212121;*/
+    /*background-color: #fafafa;*/
+    /*border-color: #eeeeee;*/
+/*}*/
+
+/*.panel-title {*/
+    /*font-size: 14px;*/
+/*}*/
+
+.panel-title > a {
+    display: block;
+    /*padding: 15px;*/
+    text-decoration: none;
+}
+
+.more-less {
+    float: right;
+    color: #212121;
+}
+
+.panel-heading .expand-toggle:after {
+    /* symbol for "expanded" divs */
+    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
+    content: "\2212";    /* minus, taken from bootstrap.css */
+    float: right;
+    color: grey;
+}
+.panel-heading .expand-toggle.collapsed:after {
+    /* symbol for "collapsed" divs */
+    content: "\2b";    /* plus, taken from bootstrap.css */
+}
+
+
+/*.panel-default > .panel-heading + .panel-collapse > .panel-body {*/
+    /*border-top-color: #EEEEEE;*/
+/*}*/
+
+td {
+    text-align: center;
+}
+
+.form-error {
+    color: #CC3434;
+}
+
+/*!* Tooltip container *!*/
+/*.tooltip {*/
+    /*position: relative;*/
+    /*display: inline-block;*/
+    /*border-bottom: 1px dotted black; !* If you want dots under the hoverable text *!*/
+    /*z-index: -2;*/
+/*}*/
+
+/*!* Tooltip text *!*/
+/*.tooltip .tooltiptext {*/
+    /*visibility: hidden;*/
+    /*width: 120px;*/
+    /*background-color: #555;*/
+    /*color: #fff;*/
+    /*text-align: center;*/
+    /*padding: 5px 0;*/
+    /*border-radius: 6px;*/
+
+    /*!* Position the tooltip text *!*/
+    /*position: absolute;*/
+    /*z-index: -1;*/
+    /*bottom: 125%;*/
+    /*left: 50%;*/
+    /*margin-left: -60px;*/
+
+    /*!* Fade in tooltip *!*/
+    /*opacity: 0;*/
+    /*transition: opacity 1s;*/
+/*}*/
+
+/*!* Tooltip arrow *!*/
+/*.tooltip .tooltiptext::after {*/
+    /*content: "";*/
+    /*position: absolute;*/
+    /*top: 100%;*/
+    /*left: 50%;*/
+    /*margin-left: -5px;*/
+    /*border-width: 5px;*/
+    /*border-style: solid;*/
+    /*border-color: #555 transparent transparent transparent;*/
+/*}*/
+
+/*!* Show the tooltip text when you mouse over the tooltip container *!*/
+/*.tooltip:hover .tooltiptext {*/
+    /*visibility: visible;*/
+    /*opacity: 1;*/
+/*}*/

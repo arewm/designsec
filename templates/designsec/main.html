@@ -16,9 +16,11 @@
 <div id="content">
     {# Display a notice at the top of the page if there is one #}
     <div id="top-wrapper">
-        {% if notice %}
+        {% if messages %}
             {% autoescape off %}
-                <div id="site-notice" class="alert alert-warning">{{ notice }}</div>
+                {% for message in messages %}
+                    <div id="site-notice" class="alert {% if message.tags %} {{ message.tags }} {% else %} alert-warning {% endif %}">{{ message }}</div>
+                {% endfor %}
             {% endautoescape %}
         {% endif %}
         {# Display the project description and threat model next on the page #}

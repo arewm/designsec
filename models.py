@@ -1,6 +1,8 @@
 import uuid
 from urllib.parse import quote
 from django.db import models
+from django.forms import ModelForm
+from django.utils.translation import ugettext_lazy as _
 
 
 class Category(models.Model):
@@ -100,3 +102,25 @@ class Project(models.Model):
 
     def __str__(self):
         return 'pk:{} name:{}'.format(self.pid, self.name)
+
+class ContactForm(ModelForm):
+    class Meta:
+        model = Contact
+        fields = '__all__'
+
+class ProjectForm(ModelForm):
+    class Meta:
+        model = Project
+        exclude = ['item', 'visits', 'last_visit']
+        labels = {
+            'name' : _('Project Name'),
+            'description' : _('Project Description'),
+            'trust' : _('Threat Model'),
+            'contact' : _('KNOX Security contact')
+        }
+        help_texts = {
+            'name' : _('Enter a brief, preferably unique, name to describe the project'),
+            'description' : _('Enter a brief project description summary'),
+            'trust' : _('Enter a brief threat model considered for the project'),
+            'contact' : _('This/these will be the contact individuals for the review')
+        }

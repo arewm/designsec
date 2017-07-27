@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Project List</title>
+
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="/static/designsec/js/admin.js"></script>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+          integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/designsec/css/admin.css">
+</head>
+<body>
+<div id="content">
+    {% if messages %}
+        <div id="top-wrapper">
+            {% autoescape off %}
+                {% for message in messages %}
+                    <div id="site-notice"
+                         class="alert {% if message.tags %} {{ message.tags }} {% else %} alert-warning {% endif %}">{{ message }}</div>
+                {% endfor %}
+            {% endautoescape %}
+        </div>
+    {% endif %}
+
+    <div id="main-wrapper">
+    <a href="#" class="btn btn-primary add-project">Add Project</a>
+        <table id="adminTable" class="table table-striped table-hover">
+            <thead>
+            <tr>
+                <td onclick="sortTable(0, 'adminTable')">Project ID</td>
+                <td onclick="sortTable(1, 'adminTable')">Project Name</td>
+                <td onclick="sortTable(2, 'adminTable')">Creation Date</td>
+                <td onclick="sortTable(3, 'adminTable')">Last Modified</td>
+                <td onclick="sortTable(4, 'adminTable')">Number of Recommendations</td>
+                <td onclick="sortTable(5, 'adminTable')">Last Visit</td>
+                <td onclick="sortTable(6, 'adminTable')">Contact</td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for p in projects %}
+                <tr>
+                    {#            permalinks, creation date, number of recommendations, updated date, number of#}
+                    {#              views, and last visit#}
+                    <td><p><a href="#" data-toggle="tooltip" title="{{ p.pid }}">{{ p.pid_short }}</a> <a
+                            href="{% url 'project' project=p.pid %}" class="btn btn-primary">View</a> <a
+                            href="{% url 'edit_project' project=p.pid %}" class="btn btn-warning">Edit</a></p></td>
+                    <td><p class="text-capitalize">{{ p.name }}</p></td>
+                    <td><p>{{ p.added }}</p></td>
+                    <td><p>{{ p.modified }}</p></td>
+                    <td><p>{{ p.rec_count }}</p></td>
+                    <td><p>{{ p.last_visit }}</p></td>
+                    <td><p>{{ p.contact }}</p></td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    <a href="#" class="btn btn-primary add-project">Add Project</a>
+    </div>
+</div>
+<!-- Create Project Modal -->
+<div id="createProjectModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Create Project</h4>
+            </div>
+            <div class="modal-body">
+                <form id="createProjectForm" method="post" action="{% url 'create_project' %}">
+                    {% csrf_token %}
+{#                    {{ contact_formset.as_p }}#}
+                    {{ contact_formset.management_form }}
+                    {% for form in contact_formset %}
+                        <div id="error_{{ form.html_name }}" class="form-error"></div>
+                        {% if form.help_text %}
+{#                            <a href="#" data-toggle="tooltip" data-placement="top" title="Hooray!">Hover</a>#}
+                            <p><a href="#" data-toggle="tooltip" data-delay="{show:0, hide:500}" data-viewport=".modal-content" data-placement="right" title="{{ form.help_text }}">{{ form.label }}</a><br />
+{#                            <div class="tooltip">{{ form.label }}<span class="tooltiptext">{{ form.help_text }}</span></div><br />#}
+                           {{ form }} </p>
+                        {% else %}
+                            <div>{{ form.label }}</div><br /><p>{{ form }} </p>
+                        {% endif %}
+{#                        {{ form }}#}
+{#                        {{ form.id }}#}
+{#                        {{ form.help_text }}#}
+{#                        {{ form.name }}#}
+{#                        {{ form.html_initial_id }}#}
+{#                        {{ form.html_name }}#}
+{#                        {{ form.html_initial_name }}#}
+{#                        {{ form.label }}#}
+{#                        {{ form.field }}#}
+{#                        {% for field in form %}#}
+{#                            {{ field }}#}
+{#                            {{ field.label }}#}
+{#                            <a href="#" data-toggle="tooltip" title="{{ field.help_text }}">{{ field.label_tag }}</a> {{ field }}#}
+{#                        {% endfor %}#}
+                    {% endfor %}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="createProjectButton"  type="button" class="btn btn-success" >Create</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
+                <button id="resetFormButton" type="button" class="btn btn-outline-secondary">Reset</button>
+            </div>
+        </div>
+
+    </div>
+</div>
+<script type="text/javascript">sortTable(2, 'adminTable');</script>
+</body>
+</html>
