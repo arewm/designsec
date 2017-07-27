@@ -91,10 +91,10 @@ class Project(models.Model):
     """
     pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
-    contact = models.ManyToManyField(Contact)
+    contact = models.ManyToManyField(Contact, blank=True)
     description = models.TextField(default=None)
     trust = models.TextField(default=None)
-    item = models.ManyToManyField(Recommendation)
+    item = models.ManyToManyField(Recommendation, blank=True)
     visits = models.PositiveIntegerField(default=0)
     last_visit = models.DateTimeField(default=None, null=True)
     added = models.DateTimeField(auto_now_add=True)

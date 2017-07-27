@@ -172,6 +172,11 @@ def create_new_project(request):
     :param request: HTTP request object containing request metadata
     :return: JSON object if unsuccessful, HTML document if successful
     """
+    # todo do we want to change this to have a uniform functionality? We can return HTML for everything. If something
+        # is invalid, it can be rendered as such in the next display. We can also keep put the current info into the form
+        # https://docs.djangoproject.com/en/1.11/ref/forms/api/#how-errors-are-displayed
+    # todo also, we might want to convert to a modelformset_factory from our custom formset. This will allow us to specify
+        # specific formsets on the fly. We can also achieve by creating more custom formsets (i.e. selecting recommendations)
     if request.method == "POST":
         formset = ProjectForm(request.POST)
         if formset.is_valid():
@@ -182,6 +187,33 @@ def create_new_project(request):
         else:
             return JsonResponse(formset.errors.as_json(), safe=False)
     return redirect('list')
+
+
+def delete_project(request):
+    """
+    ADMIN INTERFACE
+
+    :param request:
+    :return:
+    """
+    if request.method == "POST":
+        pid = request.POST.get('project', None)
+        if pid is not None:
+            p_uid = uuid.UUID(pid)
+            p = Project.objects.filter(pid=p_uid)
+            if p:
+                if len(p) != 1:
+                    messages.add_message(request, messages.ERROR, 'Project id {} is not unique. You will '
+                                                                  'have to delete it manually.'.format(pid))
+                else:
+                    p.delete()
+                    messages.add_message(request, messages.SUCCESS, 'Project with id {} successfully '
+                                                                    'deleted'.format(pid))
+        else:
+            messages.add_message(request, messages.ERROR, 'No project id provided to delete.')
+
+    return redirect('list')
+
 
 
 def edit_project(request, project):
@@ -235,6 +267,8 @@ def list_projects(request):
         context['projects'].append(pr)
 
     #ProjectFormSet = modelformset_factory(Project, exclude=['item', 'visits', 'last_visit'])
+    formset = ProjectForm()
+    #formset.
     context['contact_formset'] = ProjectForm()
 
     return render(request, 'designsec/adminList.html', context)

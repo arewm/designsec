@@ -24,6 +24,7 @@ body {
     background-color: #ffffff;
     padding:5px;
     margin-top: 5px;
+    overflow: scroll;
 }
 
 .half-top {

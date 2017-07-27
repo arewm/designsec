@@ -44,9 +44,12 @@
                 <tr>
                     {#            permalinks, creation date, number of recommendations, updated date, number of#}
                     {#              views, and last visit#}
-                    <td><p><a href="#" data-toggle="tooltip" title="{{ p.pid }}">{{ p.pid_short }}</a> <a
-                            href="{% url 'project' project=p.pid %}" class="btn btn-primary">View</a> <a
-                            href="{% url 'edit_project' project=p.pid %}" class="btn btn-warning">Edit</a></p></td>
+                    <td><p>
+                        <a href="#" data-toggle="tooltip" title="{{ p.pid }}">{{ p.pid_short }}</a>
+                        <a href="{% url 'project' project=p.pid %}" class="btn btn-primary">View</a>
+                        <a href="{% url 'edit_project' project=p.pid %}" class="btn btn-warning">Edit</a>
+                        <a href="#" class="btn btn-danger delete-project" id="delete-{{ p.pid }}">Delete</a>
+                    </p></td>
                     <td><p class="text-capitalize">{{ p.name }}</p></td>
                     <td><p>{{ p.added }}</p></td>
                     <td><p>{{ p.modified }}</p></td>
@@ -109,6 +112,30 @@
             </div>
         </div>
 
+    </div>
+</div>
+<!-- Delete Project Modal -->
+<div id="deleteProjectModal" class="modal fade" role="dialog">
+    <div class="modal-dialog">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">x</button>
+                <h4 class="modal-title">Delete Project</h4>
+            </div>
+            <div class="modal-body">
+                <div>Are you sure you want to delete the project:</div>
+                <div id="projectDeleteId"></div>
+                <form id="deleteProjectForm" method="post" action="{% url 'delete_project' %}">
+                    {% csrf_token %}
+                    <input id="deleteProjectField" type="hidden" name="project" value=""/>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="deleteProjectButton" type="button" class="btn btn-danger">Delete</button>
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
+            </div>
+        </div>
     </div>
 </div>
 <script type="text/javascript">sortTable(2, 'adminTable');</script>
