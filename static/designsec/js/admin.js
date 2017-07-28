@@ -145,7 +145,7 @@ function onReady() {
 
     $(document).on('click', '#createProjectButton', addProjectAjax);
     $(document).on('click', '#deleteProjectButton', deleteProjectAjax);
-    $('#adminTable').DataTable( {
+    var table = $('#adminTable').DataTable( {
         paging  : true,
         scrollCollapse : true,
         fixedHeader : {
@@ -153,6 +153,10 @@ function onReady() {
             footer : true
         }
     });
+    // allow the table to resize with the window
+    $(window).on('resize', function () {
+        table.table().node().style.width = null;
+    } );
 }
 
 /**
