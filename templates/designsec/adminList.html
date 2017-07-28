@@ -47,14 +47,14 @@
                 <tr>
                     {#            permalinks, creation date, number of recommendations, updated date, number of#}
                     {#              views, and last visit#}
-                    <td data-order="{{ p.pid }}" data-search="{{ p.pid }}">
+                    <td class="min-td-width" data-order="{{ p.pid }}" data-search="{{ p.pid }}">
                         <p>
-                        <a href="#" data-toggle="tooltip" title="{{ p.pid }}">{{ p.pid_short }}</a><br />
+                        <a href="#" data-toggle="tooltip" title="{{ p.pid }}" data-container="body">{{ p.pid_short }}</a><br />
                         <a href="{% url 'project' project=p.pid %}" class="btn btn-primary">View</a>
                         <a href="{% url 'edit_project' project=p.pid %}" class="btn btn-warning">Edit</a>
                         <a href="#" class="btn btn-danger delete-project" id="delete-{{ p.pid }}">Delete</a>
                     </p></td>
-                    <td><p class="text-capitalize">{{ p.name }}</p></td>
+                    <td class="max-td-width"><p class="text-capitalize">{{ p.name }}</p></td>
                     <td data-order="{{ p.added.isoformat }}"><p>{{ p.added }}</p></td>
                     <td data-order="{{ p.modified.isoformat }}"><p>{{ p.modified }}</p></td>
                     <td><p>{{ p.rec_count }}</p></td>
