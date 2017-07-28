@@ -96,13 +96,8 @@ div.tooltip-inner {
     max-width: 350px;
 }
 
-td {
-    text-align: center;
-    vertical-align: middle;
-}
-
-tr {
-    vertical-align: middle;
+table.dataTable tbody td {
+  vertical-align: middle;
 }
 
 .min-td-width {
