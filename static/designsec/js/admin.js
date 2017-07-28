@@ -145,7 +145,14 @@ function onReady() {
 
     $(document).on('click', '#createProjectButton', addProjectAjax);
     $(document).on('click', '#deleteProjectButton', deleteProjectAjax);
-    $('#adminTable').DataTable();
+    $('#adminTable').DataTable( {
+        paging  : true,
+        scrollCollapse : true,
+        fixedHeader : {
+            header : true,
+            footer : true
+        }
+    });
 }
 
 /**
