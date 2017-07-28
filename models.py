@@ -108,7 +108,7 @@ class ContactForm(ModelForm):
         model = Contact
         fields = '__all__'
 
-class ProjectForm(ModelForm):
+class ProjectCreateForm(ModelForm):
     class Meta:
         model = Project
         exclude = ['item', 'visits', 'last_visit']

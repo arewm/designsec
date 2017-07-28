@@ -21,7 +21,7 @@ from django.http import Http404, JsonResponse
 from django.shortcuts import redirect, render, get_object_or_404
 from django.utils.safestring import mark_safe
 
-from designsec.models import Category, Recommendation, Project, Contact, ProjectForm
+from designsec.models import Category, Recommendation, Project, Contact, ProjectCreateForm
 
 # from django.db.models import Q
 # from django.forms.models import model_to_dict
@@ -164,7 +164,7 @@ def create_new_project(request):
     ADMIN INTERFACE
 
     When a project is created, the necessary info needs to be provided. This information is defined in
-    models.ProjectForm. If any fields do not pass validation, a JSON object will be returned with all of the error
+    models.ProjectCreateForm. If any fields do not pass validation, a JSON object will be returned with all of the error
     messages. Upon successful project creation, the HTML document for a new list admin interface will be returned.
 
     If you try to access this interface without a POST request, you will be redirected to the admin list interface.
@@ -178,7 +178,7 @@ def create_new_project(request):
     # todo also, we might want to convert to a modelformset_factory from our custom formset. This will allow us to specify
         # specific formsets on the fly. We can also achieve by creating more custom formsets (i.e. selecting recommendations)
     if request.method == "POST":
-        formset = ProjectForm(request.POST)
+        formset = ProjectCreateForm(request.POST)
         if formset.is_valid():
             p = formset.save()
             messages.add_message(request, messages.SUCCESS, 'Project created with id {}'.format(p.pid.hex))
@@ -267,8 +267,8 @@ def list_projects(request):
         context['projects'].append(pr)
 
     #ProjectFormSet = modelformset_factory(Project, exclude=['item', 'visits', 'last_visit'])
-    formset = ProjectForm()
+    formset = ProjectCreateForm()
     #formset.
-    context['contact_formset'] = ProjectForm()
+    context['contact_formset'] = ProjectCreateForm()
 
     return render(request, 'designsec/adminList.html', context)
