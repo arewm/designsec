@@ -2,16 +2,16 @@
  * Function to remove all attributes from a jQuery object
  * @returns {*}
  */
-jQuery.fn.removeAttributes = function() {
-  return this.each(function() {
-    var attributes = $.map(this.attributes, function(item) {
-      return item.name;
+jQuery.fn.removeAttributes = function () {
+    return this.each(function () {
+        var attributes = $.map(this.attributes, function (item) {
+            return item.name;
+        });
+        var img = $(this);
+        $.each(attributes, function (i, item) {
+            img.removeAttr(item);
+        });
     });
-    var img = $(this);
-    $.each(attributes, function(i, item) {
-    img.removeAttr(item);
-    });
-  });
 };
 
 /**
@@ -30,6 +30,9 @@ function addProjectModal() {
  */
 function addProjectAjax() {
     var frm = $(document).find('#createProjectForm');
+    frm.find('textarea').each(function () {
+        $(this).html(tinyMCE.get($(this).attr('id')).getContent());
+    });
     clearFormErrors(frm);
     $.ajax({
         type: frm.attr('method'),
@@ -130,7 +133,8 @@ function replaceBody(html) {
     $(document).off('click', '#deleteProjectButton', deleteProjectAjax);
 
     // Replace the old body with the new body
-    $('body').empty().removeAttributes().html( html.substring(html.indexOf("<body>")+6, html.indexOf("</body>")) );
+    $('body').empty().removeAttributes().html(html.substring(html.indexOf("<body>") + 6, html.indexOf("</body>")));
+    tinymce.remove();
     onReady();
 }
 
@@ -145,18 +149,36 @@ function onReady() {
 
     $(document).on('click', '#createProjectButton', addProjectAjax);
     $(document).on('click', '#deleteProjectButton', deleteProjectAjax);
-    var table = $('#adminTable').DataTable( {
-        paging  : true,
-        scrollCollapse : true,
-        fixedHeader : {
-            header : true,
-            footer : true
+    // Convert the adminTable to a DataTable object
+    var table = $('#adminTable').DataTable({
+        paging: true,
+        scrollCollapse: true,
+        fixedHeader: {
+            header: true,
+            footer: true
         }
     });
     // allow the table to resize with the window
     $(window).on('resize', function () {
         table.table().node().style.width = null;
-    } );
+    });
+    // convert all textareas to use tinymce WYSIWYG editor
+    tinymce.init({
+        selector: 'textarea',
+        branding: false,
+        format: 'html',
+        height: 500,
+        menubar: false,
+        plugins: [
+            'advlist autolink lists link image charmap print preview anchor',
+            'searchreplace visualblocks code fullscreen',
+            'insertdatetime media table contextmenu paste code'
+        ],
+        toolbar: 'undo redo | insert | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image',
+        content_css: [
+            '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
+            '//www.tinymce.com/css/codepen.min.css']
+    });
 }
 
 /**
@@ -164,5 +186,7 @@ function onReady() {
  */
 $(document).ready(function () {
     onReady();
-    $(document).on('hidden.bs.modal', function () {clearFormErrors($(this).find('form'))} );
+    $(document).on('hidden.bs.modal', function () {
+        clearFormErrors($(this).find('form'))
+    });
 });

@@ -28,11 +28,11 @@
             <h1 class="text-capitalize">{{ project.name }}</h1>
             <h3>Project description</h3>
             <blockquote id="project-description">
-                {{ project.description }}
+                {{ project.description|safe }}
             </blockquote>
             <h3>Threat model</h3>
             <blockquote id="project-threat">
-                {{ project.trust }}
+                {{ project.trust|safe }}
             </blockquote>
             <div id="contact">Knox security contact:
                 {% autoescape off %}

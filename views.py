@@ -271,4 +271,5 @@ def list_projects(request):
     #formset.
     context['contact_formset'] = ProjectCreateForm()
 
+
     return render(request, 'designsec/adminList.html', context)

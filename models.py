@@ -3,6 +3,44 @@ from urllib.parse import quote
 from django.db import models
 from django.forms import ModelForm
 from django.utils.translation import ugettext_lazy as _
+from bleach import clean, ALLOWED_TAGS, ALLOWED_ATTRIBUTES, ALLOWED_STYLES
+
+# #: List of allowed tags
+# ALLOWED_TAGS = [
+#     'a',
+#     'abbr',
+#     'acronym',
+#     'b',
+#     'blockquote',
+#     'code',
+#     'em',
+#     'i',
+#     'li',
+#     'ol',
+#     'strong',
+#     'ul',
+# ]
+#
+#
+# #: Map of allowed attributes by tag
+# ALLOWED_ATTRIBUTES = {
+#     'a': ['href', 'title'],
+#     'abbr': ['title'],
+#     'acronym': ['title'],
+# }
+#
+#
+# #: List of allowed styles
+# ALLOWED_STYLES = []
+
+# Add to the beach.clean whitelist settings
+ALLOWED_TAGS.extend(['p', 'sup', 'sub', 'div', 'br', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'span'])
+ALLOWED_ATTRIBUTES.update({
+    'p' : ['style'],
+    'span' : ['style']
+})
+ALLOWED_STYLES.extend(['padding-left', 'text-decoration', 'text-align'])
+
 
 
 class Category(models.Model):
@@ -100,6 +138,16 @@ class Project(models.Model):
     added = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        """
+        Ensure that description and trust are properly cleaned before saving since we allow them to display html
+        """
+        if self.description:
+            self.description = clean(self.description)
+        if self.trust:
+            self.trust = clean(self.trust)
+        super(Project, self).save(*args, **kwargs)
+
     def __str__(self):
         return 'pk:{} name:{}'.format(self.pid, self.name)
 
@@ -124,3 +172,14 @@ class ProjectCreateForm(ModelForm):
             'trust' : _('Enter a brief threat model considered for the project'),
             'contact' : _('This/these will be the contact individuals for the review')
         }
+        # widgets = {
+        #     'description' : TinyMCE(),
+        #     'trust' : TinyMCE()
+        # }
+
+# class ProjectEditForm(ModelForm):
+#     class Meta:
+#         model = Project
+#         widgets = {
+#             'description' : TinyMCE()
+#         }
