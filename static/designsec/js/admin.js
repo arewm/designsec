@@ -1,3 +1,18 @@
+/**
+ * Function to remove all attributes from a jQuery object
+ * @returns {*}
+ */
+jQuery.fn.removeAttributes = function() {
+  return this.each(function() {
+    var attributes = $.map(this.attributes, function(item) {
+      return item.name;
+    });
+    var img = $(this);
+    $.each(attributes, function(i, item) {
+    img.removeAttr(item);
+    });
+  });
+};
 
 /**
  * Show the create project modal, used to register a click event on the relevant button
@@ -115,7 +130,7 @@ function replaceBody(html) {
     $(document).off('click', '#deleteProjectButton', deleteProjectAjax);
 
     // Replace the old body with the new body
-    $('body').empty().html( html.substring(html.indexOf("<body>")+6, html.indexOf("</body>")) );
+    $('body').empty().removeAttributes().html( html.substring(html.indexOf("<body>")+6, html.indexOf("</body>")) );
     onReady();
 }
 
