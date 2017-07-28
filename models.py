@@ -172,14 +172,7 @@ class ProjectCreateForm(ModelForm):
             'trust' : _('Enter a brief threat model considered for the project'),
             'contact' : _('This/these will be the contact individuals for the review')
         }
-        # widgets = {
-        #     'description' : TinyMCE(),
-        #     'trust' : TinyMCE()
-        # }
 
 # class ProjectEditForm(ModelForm):
 #     class Meta:
 #         model = Project
-#         widgets = {
-#             'description' : TinyMCE()
-#         }
