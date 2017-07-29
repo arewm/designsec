@@ -49,7 +49,7 @@ function addProjectAjax() {
                 replaceBody(data);
             }
         },
-        error: function (data) {
+        error: function () {
             alert('Something went wrong!');
         }
     });
@@ -57,9 +57,8 @@ function addProjectAjax() {
 
 /**
  * Show the delete project modal, used to register a click event on the relevant button
- * @param e button clicked, we get the pid from a substring of the button's id
  */
-function deleteProjectModal(e) {
+function deleteProjectModal() {
     var pid = $(this).attr('id').substring(7);
     $('#projectDeleteId').html(pid);
     $('#deleteProjectModal').modal('show');
@@ -81,7 +80,7 @@ function deleteProjectAjax() {
         success: function (data) {
             replaceBody(data);
         },
-        error: function (data) {
+        error: function () {
             alert('Something went wrong!');
         }
     });
@@ -127,7 +126,7 @@ function resetAndClearForm(form) {
 function replaceBody(html) {
     // We have to make sure to remove the old click listeners so that we do not get multiple submits
     $('.add-project').off('click', addProjectModal);
-    $('#resetFormButton').off('click', resetAndClearCreateForm);
+    $('#resetCreateProjectFormButton').off('click', resetAndClearCreateForm);
     $('.delete-project').off('click', deleteProjectModal);
     $(document).off('click', '#createProjectButton', addProjectAjax);
     $(document).off('click', '#deleteProjectButton', deleteProjectAjax);
@@ -142,11 +141,13 @@ function replaceBody(html) {
  * Initialization function to be called every time we have loaded the page/new body
  */
 function onReady() {
+    // show tooltips
     $('[data-toggle="tooltip"]').tooltip();
+    // enable modals
     $('.add-project').on('click', addProjectModal);
-    $('#resetFormButton').on('click', resetAndClearCreateForm);
+    $('#resetCreateProjectFormButton').on('click', resetAndClearCreateForm);
     $('.delete-project').on('click', deleteProjectModal);
-
+    // register Ajax functions
     $(document).on('click', '#createProjectButton', addProjectAjax);
     $(document).on('click', '#deleteProjectButton', deleteProjectAjax);
     // Convert the adminTable to a DataTable object
@@ -159,9 +160,7 @@ function onReady() {
         }
     });
     // allow the table to resize with the window
-    $(window).on('resize', function () {
-        table.table().node().style.width = null;
-    });
+    table.table().node().style.width = null;
     // convert all textareas to use tinymce WYSIWYG editor
     tinymce.init({
         selector: 'textarea',
