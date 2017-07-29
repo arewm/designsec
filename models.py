@@ -33,7 +33,7 @@ from bleach import clean, ALLOWED_TAGS, ALLOWED_ATTRIBUTES, ALLOWED_STYLES
 # #: List of allowed styles
 # ALLOWED_STYLES = []
 
-# Add to the beach.clean whitelist settings
+# Add to the beach.clean whitelist settings. Customized based on tags inserted by tinymce editor
 ALLOWED_TAGS.extend(['p', 'sup', 'sub', 'div', 'br', 'span',
                      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
                      'table', 'tbody', 'thead', 'tr', 'td', 'th'])
@@ -44,6 +44,7 @@ ALLOWED_ATTRIBUTES.update({
     'th': ['style'],
     'td': ['style']
 })
+ALLOWED_ATTRIBUTES['a'].extend(['target', 'rel'])
 ALLOWED_STYLES.extend(['padding-left', 'text-decoration', 'text-align', 'vertical-align'
                        'width', 'height', 'margin-left', 'margin-right'])
 

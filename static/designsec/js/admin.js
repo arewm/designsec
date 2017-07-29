@@ -174,8 +174,8 @@ function onReady() {
         advlist_bullet_styles: 'default,circle,square',
         advlist_number_styles: 'default,lower-alpha,upper-alpha,lower-roman,upper-roman',
         paste_data_images: false,
-        toolbar: 'styleselect | bold italic | alignleft aligncenter alignright | table ' +
-                 '| bullist numlist outdent indent | link | code',
+        toolbar: 'styleselect | bold italic | alignleft aligncenter ' +
+                 '| bullist numlist | outdent indent | link table | code',
         content_css: [
             '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
             '//www.tinymce.com/css/codepen.min.css']
