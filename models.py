@@ -54,16 +54,15 @@ class Category(models.Model):
     """
     A category to which many classifications can belong
     """
-    name = models.CharField(unique=True, max_length=100)
+    name = models.CharField(unique=True, max_length=50)
     help = models.TextField(default=None)
 
     def save(self, *args, **kwargs):
         """
         Override save method to make only the first letter of the name capital
         """
-        val = getattr(self, 'name', False)
-        if val:
-            setattr(self, 'name', val.lower().capitalize())
+        if self.name:
+            self.name = self.name.lower().capitalize()
         super(Category, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -80,11 +79,12 @@ class Classification(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Override save method to make only the first letter of the name capital
+        Override save method to make only the first letter of the name capital; ensure that html is properly cleaned
         """
-        val = getattr(self, 'name', False)
-        if val:
-            setattr(self, 'name', val.lower().capitalize())
+        if self.name:
+            self.name = self.name.lower().capitalize()
+        if self.description:
+            self.description = clean(self.description)
         super(Classification, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -102,11 +102,12 @@ class Recommendation(models.Model):
 
     def save(self, *args, **kwargs):
         """
-        Override save method to make only the first letter of the name capital
+        Override save method to make only the first letter of the name capital; Ensure that html is properly cleaned
         """
-        val = getattr(self, 'name', False)
-        if val:
-            setattr(self, 'name', val.lower().capitalize())
+        if self.name:
+            self.name = self.name.lower().capitalize()
+        if self.description:
+            self.description = clean(self.description)
         super(Recommendation, self).save(*args, **kwargs)
 
     def __str__(self):
@@ -157,29 +158,3 @@ class Project(models.Model):
 
     def __str__(self):
         return 'pk:{} name:{}'.format(self.pid, self.name)
-
-class ContactForm(ModelForm):
-    class Meta:
-        model = Contact
-        fields = '__all__'
-
-class ProjectCreateForm(ModelForm):
-    class Meta:
-        model = Project
-        exclude = ['item', 'visits', 'last_visit']
-        labels = {
-            'name' : _('Project Name'),
-            'description' : _('Project Description'),
-            'trust' : _('Threat Model'),
-            'contact' : _('KNOX Security contact')
-        }
-        help_texts = {
-            'name' : _('Enter a brief, preferably unique, name to describe the project'),
-            'description' : _('Enter a brief project description summary'),
-            'trust' : _('Enter a brief threat model considered for the project'),
-            'contact' : _('This/these will be the contact individuals for the review')
-        }
-
-# class ProjectEditForm(ModelForm):
-#     class Meta:
-#         model = Project
