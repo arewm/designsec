@@ -16,12 +16,11 @@
 import uuid
 
 from django.contrib import messages
-from django.forms import modelformset_factory
-from django.http import Http404, JsonResponse
+from django.http import Http404, JsonResponse, HttpResponse, HttpResponseNotAllowed
 from django.shortcuts import redirect, render, get_object_or_404
-from django.utils.safestring import mark_safe
 
-from designsec.models import Category, Recommendation, Project, Contact, ProjectCreateForm
+from designsec.models import Category, Recommendation, Project, Contact
+from designsec.forms import ClassificationForm, ProjectCreateForm, RecommendationForm
 
 # from django.db.models import Q
 # from django.forms.models import model_to_dict
@@ -50,11 +49,11 @@ def get_recommendation_by_category(cat=None, p_uid=None):
         # If we do not have a valid category, just get the first one defined.
         cat_obj = get_object_or_404(Category, name='All')
     # If we do not have a valid category, just get the first one defined.
-    #if not cat_obj or cat_obj is None:
+    # if not cat_obj or cat_obj is None:
     #    cat_obj = Category.objects.all()[0]
     # Get the defined classifications for the desired category
     for c in cat_obj.classification_set.order_by('name'):
-        rec_dict[c.name] = (c,[])
+        rec_dict[c.name] = (c, [])
 
     # sort the recommendations based on the category classifications
     for l in lst:
@@ -65,7 +64,7 @@ def get_recommendation_by_category(cat=None, p_uid=None):
     # remove any entries that have no values
     # and convert the rest from a dictionary
     classification_list = []
-    popper=[]
+    popper = []
     for k, v in rec_dict.items():
         if not v[1]:
             popper.append(k)
@@ -128,8 +127,9 @@ def generate_project_view(request, project):
         p = get_object_or_404(Project, pid=p_uid)
     except Http404:
         subject = 'Security recommendation bad project id {}'.format(project)
-        notice = '<strong>Unable to find the reference locator {}.</strong><br />All recommendations are displayed. '.format(project)
-        notice += 'Please contact a member of {} if you believe this is a mistake'.format(knox.mailto(subject=subject))
+        notice = '<strong>Unable to find the reference locator {}.</strong><br />All '.format(project)
+        notice += 'recommendations are displayed. Please contact a member of {} '.format(knox.mailto(subject=subject))
+        notice += 'if you believe this is a mistake'
         messages.add_message(request, messages.ERROR, notice)
         return generate_default_view(request)
 
@@ -140,24 +140,22 @@ def generate_project_view(request, project):
     return render(request, 'designsec/main.html', context)
 
 
-# todo create a helper function similar to get_recommendation_by_category for the default view (?) -- this might just be done with html
+# todo create a helper function similar to get_recommendation_by_category for the default view (?)
+#       this might just be done with html
 
-# todo create a function & url to save a category/classification/recommendation (and how this will be displayed) -- use a modal?
+# def get_admin_recommendation_by_category(cat=None, p_uid=None):
+#     """
+#     Get a list of recommendations based on the desired category for a project
+#     :param cat: The id of the recommendation category to sort based on. If none provided, we they will be presented in
+#                 the 'All' category.
+#     :param p_uid: The project uuid that we are getting the recommendations from. If none provided, we will get
+#                   all recommendations.
+#     :return
+#     """
+#     pass
 
-# todo when adding a recommendation/classification, make sure to add it to the 'All' category!
-# todo when creating a recommendation, make sure that only one classification of each category exists
-#   if more than one category, present an error to be more specific and tailor it to one classification.
 
-def get_admin_recommendation_by_category(cat=None, p_uid=None):
-    """
-    Get a list of recommendations based on the desired category for a project
-    :param cat: The id of the recommendation category to sort based on. If none provided, we they will be presented in
-                the 'All' category.
-    :param p_uid: The project uuid that we are getting the recommendations from. If none provided, we will get
-                  all recommendations.
-    :return
-    """
-    pass
+# todo ensure that user is properly authenticated before edits happen!
 
 def create_new_project(request):
     """
@@ -173,10 +171,11 @@ def create_new_project(request):
     :return: JSON object if unsuccessful, HTML document if successful
     """
     # todo do we want to change this to have a uniform functionality? We can return HTML for everything. If something
-        # is invalid, it can be rendered as such in the next display. We can also keep put the current info into the form
-        # https://docs.djangoproject.com/en/1.11/ref/forms/api/#how-errors-are-displayed
-    # todo also, we might want to convert to a modelformset_factory from our custom formset. This will allow us to specify
-        # specific formsets on the fly. We can also achieve by creating more custom formsets (i.e. selecting recommendations)
+    #       is invalid, it can be rendered as such in the next display. We can also keep put the current info into the
+    #       form https://docs.djangoproject.com/en/1.11/ref/forms/api/#how-errors-are-displayed
+    # todo we might want to convert to a modelformset_factory from our custom formset. This will allow us to specify
+    #       specific formsets on the fly. We can also achieve by creating more custom formsets (i.e. selecting
+    #       recommendations)
     if request.method == "POST":
         formset = ProjectCreateForm(request.POST)
         if formset.is_valid():
@@ -185,7 +184,9 @@ def create_new_project(request):
             return redirect('list')
 
         else:
-            return JsonResponse(formset.errors.as_json(), safe=False)
+            response = JsonResponse(formset.errors.as_json(), safe=False)
+            response.status_code = 400
+            return response
     return redirect('list')
 
 
@@ -193,8 +194,13 @@ def delete_project(request):
     """
     ADMIN INTERFACE
 
-    :param request:
-    :return:
+    This function can be used to delete a project. The functionality can only be accessed by a POST request. If there
+    is no POST, it will return a 405 error code. Successful POST responses will also send a redirected 'list' page. It
+    is up to the receiving AJAX call to strip the body to update its current page.
+
+    :param request: HTTP request object containing request data
+    :return: A rendered HTML document of the admin list page or 405 error. A message will be included at the top if
+             necessary
     """
     if request.method == "POST":
         pid = request.POST.get('project', None)
@@ -211,12 +217,156 @@ def delete_project(request):
                                                                     'deleted'.format(pid))
         else:
             messages.add_message(request, messages.ERROR, 'No project id provided to delete.')
+        return redirect('list')
+    return HttpResponseNotAllowed(permitted_methods=['POST'])
 
-    return redirect('list')
+
+# todo create URLs for these functions
+
+def edit_project_modal(request):
+    """
+    ADMIN INTERFACE
+    :param request:
+    :return:
+    """
+    # todo complete
+    pass
 
 
+def edit_contact_modal(request):
+    """
+    ADMIN INTERFACE
+    :param request:
+    :return:
+    """
+    # todo complete
+    pass
 
-def edit_project(request, project):
+
+def save_contact_edit(request):
+    """
+    ADMIN INTERFACE
+    :param request:
+    :return:
+    """
+    # todo complete
+    pass
+
+
+# todo when adding a recommendation/classification, make sure to add it to the 'All' category!
+
+def edit_category_modal(request):
+    """
+    ADMIN INTERFACE
+    :param request:
+    :return:
+    """
+    # todo complete
+    pass
+
+
+def save_category_edit(request):
+    """
+    ADMIN INTERFACE
+    :param request:
+    :return:
+    """
+    # todo complete
+    pass
+
+
+def edit_classification_modal(request):
+    """
+    ADMIN INTERFACE
+    :param request:
+    :return:
+    """
+    # todo complete
+    pass
+
+
+def save_classification_edit(request):
+    """
+    ADMIN INTERFACE
+    :param request:
+    :return:
+    """
+    # todo complete
+    if request.method != "POST":
+        return HttpResponseNotAllowed(permitted_methods=['POST'])
+
+    formset = ClassificationForm(request.POST)
+    if formset.is_valid():
+        formset.save()
+        return HttpResponse(status=200)
+    response = JsonResponse(formset.errors.as_json(), safe=False)
+    response.status_code = 400
+    return response
+
+
+# todo when creating a recommendation, make sure that only one classification of each category exists
+#   if more than one category, present an error to be more specific and tailor it to one classification.
+
+def edit_recommendation_modal(request):
+    """
+    ADMIN INTERFACE
+
+    :param request:
+    :return:
+    """
+    if request.method != "POST" or request.POST.get('id', None) is None:
+        return HttpResponseNotAllowed(permitted_methods=['POST'])
+    if request.POST.get('id', None) is None:
+        response = JsonResponse({'status': '400', 'reason': 'Invalid ID provided'})
+        response.status_code = 400
+        return response
+    form = RecommendationForm(instance=Recommendation.objects.get(pk=request.POST['id']))
+    context = {
+        'form': form
+    }
+    return render(request, 'designsec/admin_modal_form.html', context)
+
+
+def delete_recommendation(request):
+    """
+    ADMIN INTERFACE
+
+    :param request:
+    :return:
+    """
+    if request.method != "POST":
+        return HttpResponseNotAllowed(permitted_methods=['POST'])
+
+    try:
+        rec = get_object_or_404(Recommendation, pk=request.POST.get('id', None))
+        rec.delete()
+    except Http404:
+        response = JsonResponse({'status': '400', 'reason': 'Invalid ID provided'})
+        response.status_code = 400
+        return response
+    return HttpResponse(status=404)
+
+
+def save_recommendation_edit(request):
+    """
+    ADMIN INTERFACE
+
+    :param request:
+    :return:
+    """
+    if request.method != "POST":
+        return HttpResponseNotAllowed(permitted_methods=['POST'])
+
+    formset = RecommendationForm(request.POST)
+    if formset.is_valid():
+        formset.save()
+        return HttpResponse(status=200)
+    response = JsonResponse(formset.errors.as_json(), safe=False)
+    response.status_code = 400
+    return response
+
+
+def generate_edit_project_view(request, project):
     """
     ADMIN INTERFACE
 
@@ -226,8 +376,10 @@ def edit_project(request, project):
     """
     # todo complete this, change from main.html
     # todo when modifying a project, make sure that changes are applied before switching categories
+    #       keep when switching categories, submit list of selected and non-selected recommendations displayed
     # todo for each category, make a modal to create a new recommendation
-        # todo how do you handle when a recommendation is added and selections have been made?
+    #       create modals with JS by passing category/classification that we belong to
+    #       when a recommendation is successfully created, save the current selection in JS and apply on new list load
     p_uid = uuid.UUID(project)
     try:
         p = get_object_or_404(Project, pid=p_uid)
@@ -244,32 +396,29 @@ def edit_project(request, project):
 
 
 def list_projects(request):
-    '''
+    """
     ADMIN INTERFACE
 
     List all projects along with their permalinks, creation date, number of recommendations, updated date, number of
     views, and last visit
     :param request: HTTP request object containing request metadata
     :return:
-    '''
+    """
     # todo provide an interface to edit/add contacts, make available as a modal from admin list
-    context = {'projects':[]}
+    context = {'projects': []}
     for p in Project.objects.all():
-        pr = {}
-        pr['name'] = p.name
-        pr['pid_short'] = '{}...'.format(p.pid.hex[:8])
-        pr['pid'] = p.pid.hex
-        pr['added'] = p.added
-        pr['modified'] = p.modified
-        pr['contact'] = '; '.join([c.email.split('@')[0] for c in p.contact.order_by('email')])
-        pr['rec_count'] = p.item.count()
-        pr['last_visit'] = p.last_visit
+        pr = {
+            'name': p.name,
+            'pid_short': '{}...'.format(p.pid.hex[:8]),
+            'pid': p.pid.hex,
+            'added': p.added,
+            'modified': p.modified,
+            'contact': '; '.join([c.email.split('@')[0] for c in p.contact.order_by('email')]),
+            'rec_count': p.item.count(),
+            'last_visit': p.last_visit
+        }
         context['projects'].append(pr)
 
-    #ProjectFormSet = modelformset_factory(Project, exclude=['item', 'visits', 'last_visit'])
-    formset = ProjectCreateForm()
-    #formset.
     context['contact_formset'] = ProjectCreateForm()
-
 
     return render(request, 'designsec/adminList.html', context)

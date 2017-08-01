@@ -39,18 +39,18 @@ function addProjectAjax() {
         url: frm.attr('action'),
         data: frm.serialize(),
         success: function (data) {
-            try {
-                var resp = jQuery.parseJSON(data);
-                for (var key in resp) {
-                    $('#error_' + key).html(resp[key][0].message);
-                }
-            }
-            catch (err) {
-                replaceBody(data);
-            }
+            replaceBody(data);
         },
-        error: function () {
-            alert('Something went wrong!');
+        error: function (jqXHR) {
+            if (jqXHR.status === 400) {
+                var resp = JSON.parse(jqXHR.responseJSON);
+                $.each(resp, function (k, v) {
+                    $('#error_' + k).html(v[0].message);
+                });
+            }
+            else {
+                alert('Something went wrong!')
+            }
         }
     });
 }
