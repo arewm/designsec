@@ -10,6 +10,7 @@
     <script src="/static/designsec/js/tinymce/tinymce.min.js"></script>
     <script src="/static/designsec/js/admin.js"></script>
 
+    <link rel="stylesheet" type="text/css" href="/static/designsec/css/bootstrap-modal-bs3patch.css">
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css">
@@ -56,8 +57,8 @@
                         <a href="#" class="btn btn-danger delete-project" id="delete-{{ p.pid }}">Delete</a>
                     </p></td>
                     <td class="max-td-width"><p class="text-capitalize">{{ p.name }}</p></td>
-                    <td data-order="{{ p.added.isoformat }}"><p>{{ p.added }}</p></td>
-                    <td data-order="{{ p.modified.isoformat }}"><p>{{ p.modified }}</p></td>
+                    <td data-order="{{ p.added|date:'U' }}"><p>{{ p.added }}</p></td>
+                    <td data-order="{{ p.modified|date:'U' }}"><p>{{ p.modified }}</p></td>
                     <td><p>{{ p.rec_count }}</p></td>
                     <td><p>{{ p.last_visit }}</p></td>
                     <td><p>{{ p.contact }}</p></td>
@@ -84,7 +85,7 @@
                     {% for form in contact_formset %}
                         <div id="error_{{ form.html_name }}" class="form-error"></div>
                         {% if form.help_text %}
-                            <p><a href="#" data-toggle="tooltip" data-delay="{show:0, hide:500}" data-viewport=".modal-content" data-placement="right" title="{{ form.help_text }}">{{ form.label }}</a><br />
+                            <p><a href="#" data-toggle="tooltip" data-viewport=".modal-content" data-placement="right" title="{{ form.help_text }}">{{ form.label }}</a><br />
                            {{ form }} </p>
                         {% else %}
                             <div>{{ form.label }}</div><br /><p>{{ form }} </p>
