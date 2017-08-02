@@ -16,15 +16,49 @@
 import uuid
 
 from django.contrib import messages
-from django.http import Http404, JsonResponse, HttpResponse, HttpResponseNotAllowed
+from django.http import Http404, JsonResponse, HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.shortcuts import redirect, render, get_object_or_404
-
-from designsec.models import Category, Recommendation, Project, Contact
-from designsec.forms import ClassificationForm, ProjectCreateForm, RecommendationForm
+from django.template.loader import render_to_string
+from designsec.models import Category, Recommendation, Project, Contact, Classification
+import designsec.forms as design_forms
 
 # from django.db.models import Q
 # from django.forms.models import model_to_dict
 knox = Contact.objects.filter(name='Knox Security')[0]
+
+SUPPORTED_MODAL_CLASSES = {
+    'project': Project,
+    'category': Category,
+    'recommendation': Recommendation,
+    'contact': Contact,
+    'classification': Classification
+}
+MODAL_MODEL_FORMS = {
+    'project': design_forms.ProjectModelForm,
+    'category': design_forms.CategoryModelForm,
+    'recommendation': design_forms.RecommendationModelForm,
+    'contact': design_forms.ContactModelForm,
+    'classification': design_forms.ClassificationModelForm
+}
+MODAL_DELETE_FORMS = {
+    'project': design_forms.ProjectDeleteForm,
+    'category': design_forms.CategoryDeleteForm,
+    'recommendation': design_forms.RecommendationDeleteForm,
+    'contact': design_forms.ContactDeleteForm,
+    'classification': design_forms.ClassificationDeleteForm
+}
+# CAUTION: ANY OPTIONS SET HERE WILL OVERRIDE THE OPTIONS FOR ALL OPERATIONS
+MODAL_OPTIONS = {
+    'project': {
+        'select_check': 'contact'
+    },
+    'recommendation': {
+        'select_check': 'classification'
+    },
+    'classification': {},
+    'category': {},
+    'contact': {}
+}
 
 
 def get_recommendation_by_category(cat=None, p_uid=None):
@@ -162,7 +196,7 @@ def create_new_project(request):
     ADMIN INTERFACE
 
     When a project is created, the necessary info needs to be provided. This information is defined in
-    models.ProjectCreateForm. If any fields do not pass validation, a JSON object will be returned with all of the error
+    models.ProjectModelForm. If any fields do not pass validation, a JSON object will be returned with all of the error
     messages. Upon successful project creation, the HTML document for a new list admin interface will be returned.
 
     If you try to access this interface without a POST request, you will be redirected to the admin list interface.
@@ -177,7 +211,7 @@ def create_new_project(request):
     #       specific formsets on the fly. We can also achieve by creating more custom formsets (i.e. selecting
     #       recommendations)
     if request.method == "POST":
-        formset = ProjectCreateForm(request.POST)
+        formset = design_forms.ProjectModelForm(request.POST)
         if formset.is_valid():
             p = formset.save()
             messages.add_message(request, messages.SUCCESS, 'Project created with id {}'.format(p.pid.hex))
@@ -221,6 +255,140 @@ def delete_project(request):
     return HttpResponseNotAllowed(permitted_methods=['POST'])
 
 
+def get_modal(request, op=None):
+    """
+    ADMIN INTERFACE
+
+    This is the master method used to get the desired modal.
+    :param request:
+    :param op: Type of modal to get (add, edit, delete)
+    :return:
+    """
+    if request.method != "POST":
+        return HttpResponseNotAllowed(permitted_methods=['POST'])
+    if request.POST.get('target', None) not in SUPPORTED_MODAL_CLASSES:
+        return HttpResponseBadRequest()
+    # Determine what class we are trying to make a modal for
+    target = request.POST.get('target')
+    # Some operations do not need an ID
+    if op == 'add':
+        return add_modal(request, target)
+    # The rest need an ID
+    id = request.POST.get('id', None)
+    try:
+        target_obj = get_object_or_404(SUPPORTED_MODAL_CLASSES, pk=id)
+    except Http404:
+        response = JsonResponse({'status': '400', 'reason': 'Invalid ID provided'})
+        response.status_code = 400
+        return response
+    if op == 'add':
+        return edit_modal(request, target, target_obj)
+    elif op == 'delete':
+        return delete_modal(request, target, target_obj)
+
+
+# todo use jquery to get the object we are acting on and the field name for any multi-select.
+#       Generate add button dynamically?
+
+def add_modal(request, target):
+    formset = MODAL_MODEL_FORMS[target]
+    if request.POST.get('loaded', None) is not None:
+        # we have already been here once, validate and try to save the form
+        loaded = formset(request.POST_)
+        if loaded.is_valid():
+            # todo when adding a recommendation, make sure to add it to the 'All' category!
+            p = loaded.save()
+            # todo we probably just want to return a json message
+            messages.add_message(request, messages.SUCCESS, '{} created with id {}'.format(target.capitalize(),
+                                                                                           p.pid.hex))
+            return redirect('list')
+
+        else:
+            response = JsonResponse(loaded.errors.as_json(), safe=False)
+            response.status_code = 400
+            return response
+    # generate the form for the first time
+    context = {
+        'operation': 'add',
+        'target': target,
+        'formset': formset(),
+        'select_check': '',
+        'success_color': 'success',
+        'cancel_color': 'danger'
+    }
+    context.update(MODAL_OPTIONS[target])
+    # todo complete this JsonResponse object, propagate to other modals/results
+    response = JsonResponse({
+        'form_id': '',
+        'next_action': '',
+        'modal': render_to_string('designsec/admin_modal_form.html', context, request)
+    })
+    response.status_code = 200
+    return response
+
+
+# todo we need to be able to specify the action for jquery to perform when modal is closed.
+
+def edit_modal(request, target, edit_target):
+    # Determine what formset we are trying to show
+    formset = MODAL_MODEL_FORMS[target]
+    if request.POST.get('loaded', None) is not None:
+        # we have already been here once, validate and try to save the form
+        loaded = formset(request.POST)
+        if loaded.is_valid():
+            loaded.save()
+            return HttpResponse(status=200)
+        response = JsonResponse(loaded.errors.as_json(), safe=False)
+        response.status_code = 400
+        return response
+    # generate the form for the first time
+    context = {
+        'operation': 'edit',
+        'target': target,
+        'formset': formset(instance=edit_target),
+        'select_check': '',
+        'success_color': 'success',
+        'cancel_color': 'danger'
+    }
+    context.update(MODAL_OPTIONS[target])
+    return render(request, 'designsec/admin_modal_form.html', context)
+
+def delete_modal(request, target, edit_target):
+    form = MODAL_DELETE_FORMS[target]
+    if request.POST.get('loaded', None) is not None:
+        # we have already been here once, validate and try to delete the object
+        loaded = form(request.POST)
+        if loaded.is_valid():
+            edit_target.delete()
+            return HttpResponse(status=200)
+        response = JsonResponse(loaded.errors.as_json(), safe=False)
+        response.status_code = 400
+        return response
+    # generate the form for the first time
+    context = {
+        'operation': 'delete',
+        'target': target,
+        'formset': form(edit_target),
+        'select_check': '',
+        'success_color': 'success',
+        'cancel_color': 'danger'
+    }
+    context.update(MODAL_OPTIONS[target])
+
+
+
+def get_add_modal(request):
+    pass
+
+
+def get_edit_modal(request):
+    pass
+
+
+def get_delete_modal(request):
+    pass
+
+
 # todo create URLs for these functions
 
 def edit_project_modal(request):
@@ -253,7 +421,7 @@ def save_contact_edit(request):
     pass
 
 
-# todo when adding a recommendation/classification, make sure to add it to the 'All' category!
+
 
 def edit_category_modal(request):
     """
@@ -295,7 +463,7 @@ def save_classification_edit(request):
     if request.method != "POST":
         return HttpResponseNotAllowed(permitted_methods=['POST'])
 
-    formset = ClassificationForm(request.POST)
+    formset = design_forms.ClassificationModelForm(request.POST)
     if formset.is_valid():
         formset.save()
         return HttpResponse(status=200)
@@ -320,7 +488,7 @@ def edit_recommendation_modal(request):
         response = JsonResponse({'status': '400', 'reason': 'Invalid ID provided'})
         response.status_code = 400
         return response
-    form = RecommendationForm(instance=Recommendation.objects.get(pk=request.POST['id']))
+    form = design_forms.RecommendationModelForm(instance=Recommendation.objects.get(pk=request.POST['id']))
     context = {
         'form': form
     }
@@ -357,7 +525,7 @@ def save_recommendation_edit(request):
     if request.method != "POST":
         return HttpResponseNotAllowed(permitted_methods=['POST'])
 
-    formset = RecommendationForm(request.POST)
+    formset = design_forms.RecommendationModelForm(request.POST)
     if formset.is_valid():
         formset.save()
         return HttpResponse(status=200)
@@ -419,6 +587,15 @@ def list_projects(request):
         }
         context['projects'].append(pr)
 
-    context['contact_formset'] = ProjectCreateForm()
+    modal = {
+        'operation': 'create',
+        'target': 'project',
+        'formset': design_forms.ProjectModelForm(),
+        'select_check': 'contact',
+        'success_color': 'success',
+        'cancel_color': 'danger'
+    }
+
+    context['modal'] = render_to_string('designsec/admin_modal_form.html', modal, request)
 
     return render(request, 'designsec/adminList.html', context)

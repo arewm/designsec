@@ -1,0 +1,37 @@
+{# operation, target, formset, select_check, success_color, cancel_color, [id] #}
+{# jquery: .find(`[data-operation='submit/reset']`) #}
+
+<div id="{{ operation }}{{ target|capfirst }}Modal" class="modal fade hide" role="dialog" tabindex="-1" data-focus-on="input:first">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">{{ operation|capfirst }} {{ target|capfirst }}</h4>
+            </div>
+            <div class="modal-body">
+                {% if operation == 'delete' %}<p>Are you sure you want to delete the {{ target }}:</p> {% endif %}
+                <form id="{{ operation }}{{ target }}Form" method="post" {% if select_check %}data-check-select="{{ select_check }}" {% endif %}action="{% url 'get_modal' op=operation %}">
+                    {% csrf_token %}
+                    {{ formset.management_form }}
+                    <input type="hidden" name="target" value="{{ target }}">
+                    {% if id %}<input type="hidden" name="id" value="{{ id }}">{% endif %}
+                    <input type="hidden" name="loaded" value="true">
+                    {% for form in formset %}
+                        <div id="error_{{ form.html_name }}" class="form-error"></div>
+                        {% if form.help_text %}
+                            <p><a href="#" data-toggle="tooltip" data-viewport=".modal-content" data-placement="right" title="{{ form.help_text }}">{{ form.label }}</a><br />
+                           {{ form }} </p>
+                        {% else %}
+                            <div>{{ form.label }}</div><br /><p>{{ form }} </p>
+                        {% endif %}
+                    {% endfor %}
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button id="{{ operation }}{{ target|capfirst }}Button"  type="button" class="btn btn-{{ success_color }}" data-operation="submit">{{ operation|capfirst }}</button>
+                <button type="button" class="btn btn-{{ cancel_color }}" data-dismiss="modal" >Cancel</button>
+                {% if operation != 'delete' %}<button id="reset{{ operation }}{{ target|capfirst }}FormButton" type="button" class="btn btn-outline-secondary" data-option="reset">Reset</button>{% endif %}
+            </div>
+        </div>
+    </div>
+</div>

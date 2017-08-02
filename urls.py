@@ -11,4 +11,5 @@ urlpatterns = [
     url(r'^admin/delete/?$', views.delete_project, name='delete_project'),
     url(r'^admin/(?P<project>[0-9a-zA-Z_\-]{32})/?$', views.generate_edit_project_view, name='edit_project'),
     url(r'^admin/list/?$', views.list_projects, name='list'),
+    url(r'^admin/get-modal/(?P<op>(add|edit|delete))/?$', views.get_modal, name='get_modal'),
 ]

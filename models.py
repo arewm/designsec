@@ -1,8 +1,6 @@
 import uuid
 from urllib.parse import quote
 from django.db import models
-from django.forms import ModelForm
-from django.utils.translation import ugettext_lazy as _
 from bleach import clean, ALLOWED_TAGS, ALLOWED_ATTRIBUTES, ALLOWED_STYLES
 
 # #: List of allowed tags
@@ -53,9 +51,12 @@ ALLOWED_STYLES.extend(['padding-left', 'text-decoration', 'text-align', 'vertica
 class Category(models.Model):
     """
     A category to which many classifications can belong
+
+    ..note: There should always be an 'All' Category. We have ensured this using the CategoryModelForm, but be careful if
+            playing around with the objects directly!
     """
     name = models.CharField(unique=True, max_length=50)
-    help = models.TextField(default=None)
+    help = models.CharField(default=None, max_length=100)
 
     def save(self, *args, **kwargs):
         """
@@ -72,6 +73,9 @@ class Category(models.Model):
 class Classification(models.Model):
     """
     A subset of a category to classify recommendations under
+
+    ..note: There should always be a classification that belongs to an 'All' Category. We have ensured this using the
+            ClassificationModelForm, but be careful if playing around with the objects directly!
     """
     name = models.CharField(max_length=100)
     description = models.TextField(default=None)
@@ -108,10 +112,11 @@ class Recommendation(models.Model):
             self.name = self.name.lower().capitalize()
         if self.description:
             self.description = clean(self.description)
+        # todo ensure that there is always a classification within 'All' category
         super(Recommendation, self).save(*args, **kwargs)
 
     def __str__(self):
-        return '{} <-- {}'.format(self.name, '; '.join(str(c) for c in self.classification.all()))
+        return '{}'.format(self.name)
 
 
 class Contact(models.Model):
@@ -157,4 +162,4 @@ class Project(models.Model):
         super(Project, self).save(*args, **kwargs)
 
     def __str__(self):
-        return 'pk:{} name:{}'.format(self.pid, self.name)
+        return 'pid:{} name:{}'.format(self.pid, self.name)
