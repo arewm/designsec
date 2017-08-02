@@ -274,9 +274,9 @@ def get_modal(request, op=None):
     if op == 'add':
         return add_modal(request, target)
     # The rest need an ID
-    id = request.POST.get('id', None)
+    t_id = request.POST.get('id', None)
     try:
-        target_obj = get_object_or_404(SUPPORTED_MODAL_CLASSES, pk=id)
+        target_obj = get_object_or_404(SUPPORTED_MODAL_CLASSES, pk=t_id)
     except Http404:
         response = JsonResponse({'status': '400', 'reason': 'Invalid ID provided'})
         response.status_code = 400
@@ -289,6 +289,9 @@ def get_modal(request, op=None):
 
 # todo use jquery to get the object we are acting on and the field name for any multi-select.
 #       Generate add button dynamically?
+
+# todo when creating a recommendation, make sure that only one classification of each category exists
+#   if more than one category, present an error to be more specific and tailor it to one classification.
 
 def add_modal(request, target):
     formset = MODAL_MODEL_FORMS[target]
@@ -353,6 +356,7 @@ def edit_modal(request, target, edit_target):
     context.update(MODAL_OPTIONS[target])
     return render(request, 'designsec/admin_modal_form.html', context)
 
+
 def delete_modal(request, target, edit_target):
     form = MODAL_DELETE_FORMS[target]
     if request.POST.get('loaded', None) is not None:
@@ -374,164 +378,6 @@ def delete_modal(request, target, edit_target):
         'cancel_color': 'danger'
     }
     context.update(MODAL_OPTIONS[target])
-
-
-
-def get_add_modal(request):
-    pass
-
-
-def get_edit_modal(request):
-    pass
-
-
-def get_delete_modal(request):
-    pass
-
-
-# todo create URLs for these functions
-
-def edit_project_modal(request):
-    """
-    ADMIN INTERFACE
-    :param request:
-    :return:
-    """
-    # todo complete
-    pass
-
-
-def edit_contact_modal(request):
-    """
-    ADMIN INTERFACE
-    :param request:
-    :return:
-    """
-    # todo complete
-    pass
-
-
-def save_contact_edit(request):
-    """
-    ADMIN INTERFACE
-    :param request:
-    :return:
-    """
-    # todo complete
-    pass
-
-
-
-
-def edit_category_modal(request):
-    """
-    ADMIN INTERFACE
-    :param request:
-    :return:
-    """
-    # todo complete
-    pass
-
-
-def save_category_edit(request):
-    """
-    ADMIN INTERFACE
-    :param request:
-    :return:
-    """
-    # todo complete
-    pass
-
-
-def edit_classification_modal(request):
-    """
-    ADMIN INTERFACE
-    :param request:
-    :return:
-    """
-    # todo complete
-    pass
-
-
-def save_classification_edit(request):
-    """
-    ADMIN INTERFACE
-    :param request:
-    :return:
-    """
-    # todo complete
-    if request.method != "POST":
-        return HttpResponseNotAllowed(permitted_methods=['POST'])
-
-    formset = design_forms.ClassificationModelForm(request.POST)
-    if formset.is_valid():
-        formset.save()
-        return HttpResponse(status=200)
-    response = JsonResponse(formset.errors.as_json(), safe=False)
-    response.status_code = 400
-    return response
-
-
-# todo when creating a recommendation, make sure that only one classification of each category exists
-#   if more than one category, present an error to be more specific and tailor it to one classification.
-
-def edit_recommendation_modal(request):
-    """
-    ADMIN INTERFACE
-
-    :param request:
-    :return:
-    """
-    if request.method != "POST" or request.POST.get('id', None) is None:
-        return HttpResponseNotAllowed(permitted_methods=['POST'])
-    if request.POST.get('id', None) is None:
-        response = JsonResponse({'status': '400', 'reason': 'Invalid ID provided'})
-        response.status_code = 400
-        return response
-    form = design_forms.RecommendationModelForm(instance=Recommendation.objects.get(pk=request.POST['id']))
-    context = {
-        'form': form
-    }
-    return render(request, 'designsec/admin_modal_form.html', context)
-
-
-def delete_recommendation(request):
-    """
-    ADMIN INTERFACE
-
-    :param request:
-    :return:
-    """
-    if request.method != "POST":
-        return HttpResponseNotAllowed(permitted_methods=['POST'])
-
-    try:
-        rec = get_object_or_404(Recommendation, pk=request.POST.get('id', None))
-        rec.delete()
-    except Http404:
-        response = JsonResponse({'status': '400', 'reason': 'Invalid ID provided'})
-        response.status_code = 400
-        return response
-    return HttpResponse(status=404)
-
-
-def save_recommendation_edit(request):
-    """
-    ADMIN INTERFACE
-
-    :param request:
-    :return:
-    """
-    if request.method != "POST":
-        return HttpResponseNotAllowed(permitted_methods=['POST'])
-
-    formset = design_forms.RecommendationModelForm(request.POST)
-    if formset.is_valid():
-        formset.save()
-        return HttpResponse(status=200)
-    response = JsonResponse(formset.errors.as_json(), safe=False)
-    response.status_code = 400
-    return response
 
 
 def generate_edit_project_view(request, project):
