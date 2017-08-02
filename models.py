@@ -36,8 +36,8 @@ ALLOWED_TAGS.extend(['p', 'sup', 'sub', 'div', 'br', 'span',
                      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
                      'table', 'tbody', 'thead', 'tr', 'td', 'th'])
 ALLOWED_ATTRIBUTES.update({
-    'p' : ['style'],
-    'span' : ['style'],
+    'p': ['style'],
+    'span': ['style'],
     'table': ['style', 'cellpadding', 'cellspacing', 'border'],
     'th': ['style'],
     'td': ['style']
@@ -47,13 +47,12 @@ ALLOWED_STYLES.extend(['padding-left', 'text-decoration', 'text-align', 'vertica
                        'width', 'height', 'margin-left', 'margin-right'])
 
 
-
 class Category(models.Model):
     """
     A category to which many classifications can belong
 
-    ..note: There should always be an 'All' Category. We have ensured this using the CategoryModelForm, but be careful if
-            playing around with the objects directly!
+    ..note: There should always be an 'All' Category. We have ensured this using the CategoryModelForm, but be careful
+            if playing around with the objects directly!
     """
     name = models.CharField(unique=True, max_length=50)
     help = models.CharField(default=None, max_length=100)

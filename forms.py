@@ -79,11 +79,11 @@ class ClassificationDeleteForm(forms.Form):
 
         # Check to make sure that we are not deleting the last 'All' classification
         if Category.objects.filter(name='All').count() == 1 and \
-            Classification.objects.filter(id=self.cleaned_data['id'])[0].category.name == 'All' and \
-            self.cleaned_data['category'].name == 'All' and \
-            self.cleaned_data['DELETE']:
-            self.add_error('category', {'message': 'This change will remove the last classification from the \'All\''
-                                                   'category. This operation is forbidden.'})
+                Classification.objects.filter(id=self.cleaned_data['id'])[0].category.name == 'All' and \
+                self.cleaned_data['category'].name == 'All' and \
+                self.cleaned_data['DELETE']:
+            self.add_error('category', {'message': 'This change will remove the last classification from the '
+                                                   '\'All\' category. This operation is forbidden.'})
             return False
         return True
 
