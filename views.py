@@ -16,11 +16,12 @@
 import uuid
 
 from django.contrib import messages
-from django.http import Http404, JsonResponse, HttpResponse, HttpResponseNotAllowed, HttpResponseBadRequest
+from django.http import Http404, JsonResponse, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.shortcuts import redirect, render, get_object_or_404
 from django.template.loader import render_to_string
 from designsec.models import Category, Recommendation, Project, Contact, Classification
-import designsec.forms as design_forms
+from designsec.forms import ProjectModelForm, CategoryModelForm, \
+    RecommendationModelForm, ContactModelForm, ClassificationModelForm
 
 # from django.db.models import Q
 # from django.forms.models import model_to_dict
@@ -34,18 +35,11 @@ SUPPORTED_MODAL_CLASSES = {
     'classification': Classification
 }
 MODAL_MODEL_FORMS = {
-    'project': design_forms.ProjectModelForm,
-    'category': design_forms.CategoryModelForm,
-    'recommendation': design_forms.RecommendationModelForm,
-    'contact': design_forms.ContactModelForm,
-    'classification': design_forms.ClassificationModelForm
-}
-MODAL_DELETE_FORMS = {
-    'project': design_forms.ProjectDeleteForm,
-    'category': design_forms.CategoryDeleteForm,
-    'recommendation': design_forms.RecommendationDeleteForm,
-    'contact': design_forms.ContactDeleteForm,
-    'classification': design_forms.ClassificationDeleteForm
+    'project': ProjectModelForm,
+    'category': CategoryModelForm,
+    'recommendation': RecommendationModelForm,
+    'contact': ContactModelForm,
+    'classification': ClassificationModelForm
 }
 # CAUTION: ANY OPTIONS SET HERE WILL OVERRIDE THE OPTIONS FOR ALL OPERATIONS
 MODAL_OPTIONS = {
@@ -191,70 +185,6 @@ def generate_project_view(request, project):
 
 # todo ensure that user is properly authenticated before edits happen!
 
-def create_new_project(request):
-    """
-    ADMIN INTERFACE
-
-    When a project is created, the necessary info needs to be provided. This information is defined in
-    models.ProjectModelForm. If any fields do not pass validation, a JSON object will be returned with all of the error
-    messages. Upon successful project creation, the HTML document for a new list admin interface will be returned.
-
-    If you try to access this interface without a POST request, you will be redirected to the admin list interface.
-
-    :param request: HTTP request object containing request metadata
-    :return: JSON object if unsuccessful, HTML document if successful
-    """
-    # todo do we want to change this to have a uniform functionality? We can return HTML for everything. If something
-    #       is invalid, it can be rendered as such in the next display. We can also keep put the current info into the
-    #       form https://docs.djangoproject.com/en/1.11/ref/forms/api/#how-errors-are-displayed
-    # todo we might want to convert to a modelformset_factory from our custom formset. This will allow us to specify
-    #       specific formsets on the fly. We can also achieve by creating more custom formsets (i.e. selecting
-    #       recommendations)
-    if request.method == "POST":
-        formset = design_forms.ProjectModelForm(request.POST)
-        if formset.is_valid():
-            p = formset.save()
-            messages.add_message(request, messages.SUCCESS, 'Project created with id {}'.format(p.pid.hex))
-            return redirect('list')
-
-        else:
-            response = JsonResponse(formset.errors.as_json(), safe=False)
-            response.status_code = 400
-            return response
-    return redirect('list')
-
-
-def delete_project(request):
-    """
-    ADMIN INTERFACE
-
-    This function can be used to delete a project. The functionality can only be accessed by a POST request. If there
-    is no POST, it will return a 405 error code. Successful POST responses will also send a redirected 'list' page. It
-    is up to the receiving AJAX call to strip the body to update its current page.
-
-    :param request: HTTP request object containing request data
-    :return: A rendered HTML document of the admin list page or 405 error. A message will be included at the top if
-             necessary
-    """
-    if request.method == "POST":
-        pid = request.POST.get('project', None)
-        if pid is not None:
-            p_uid = uuid.UUID(pid)
-            p = Project.objects.filter(pid=p_uid)
-            if p:
-                if len(p) != 1:
-                    messages.add_message(request, messages.ERROR, 'Project id {} is not unique. You will '
-                                                                  'have to delete it manually.'.format(pid))
-                else:
-                    p.delete()
-                    messages.add_message(request, messages.SUCCESS, 'Project with id {} successfully '
-                                                                    'deleted'.format(pid))
-        else:
-            messages.add_message(request, messages.ERROR, 'No project id provided to delete.')
-        return redirect('list')
-    return HttpResponseNotAllowed(permitted_methods=['POST'])
-
-
 def get_modal(request, op=None):
     """
     ADMIN INTERFACE
@@ -270,21 +200,23 @@ def get_modal(request, op=None):
         return HttpResponseBadRequest()
     # Determine what class we are trying to make a modal for
     target = request.POST.get('target')
+    content, status = None, None  # initialization
     # Some operations do not need an ID
     if op == 'add':
-        return add_modal(request, target)
-    # The rest need an ID
-    t_id = request.POST.get('id', None)
-    try:
-        target_obj = get_object_or_404(SUPPORTED_MODAL_CLASSES, pk=t_id)
-    except Http404:
-        response = JsonResponse({'status': '400', 'reason': 'Invalid ID provided'})
-        response.status_code = 400
-        return response
-    if op == 'add':
-        return edit_modal(request, target, target_obj)
-    elif op == 'delete':
-        return delete_modal(request, target, target_obj)
+        content, status = add_modal(request, target)
+    else:
+        # The rest need an ID
+        t_id = request.POST.get('id', None)
+        try:
+            target_obj = get_object_or_404(SUPPORTED_MODAL_CLASSES[target], pk=t_id)
+        except Http404:
+            return JsonResponse({'status': '400', 'reason': 'Invalid ID provided'}, status=400)
+        if op == 'add':
+            content, status = edit_modal(request, target, target_obj)
+        elif op == 'delete':
+            content, status = delete_modal(request, target, target_obj)
+    safe = False if status != 200 else True
+    return JsonResponse(data=content, safe=safe, status=status)
 
 
 # todo use jquery to get the object we are acting on and the field name for any multi-select.
@@ -297,19 +229,16 @@ def add_modal(request, target):
     formset = MODAL_MODEL_FORMS[target]
     if request.POST.get('loaded', None) is not None:
         # we have already been here once, validate and try to save the form
-        loaded = formset(request.POST_)
+        loaded = formset(request.POST)
         if loaded.is_valid():
             # todo when adding a recommendation, make sure to add it to the 'All' category!
             p = loaded.save()
-            # todo we probably just want to return a json message
             messages.add_message(request, messages.SUCCESS, '{} created with id {}'.format(target.capitalize(),
                                                                                            p.pid.hex))
-            return redirect('list')
+            return {'message': '{} created with id {}'.format(target.capitalize(), p.pid.hex)}, 200
 
         else:
-            response = JsonResponse(loaded.errors.as_json(), safe=False)
-            response.status_code = 400
-            return response
+            return loaded.errors.as_json(), 400
     # generate the form for the first time
     context = {
         'operation': 'add',
@@ -320,14 +249,13 @@ def add_modal(request, target):
         'cancel_color': 'danger'
     }
     context.update(MODAL_OPTIONS[target])
-    # todo complete this JsonResponse object, propagate to other modals/results
-    response = JsonResponse({
+    # todo complete this JsonResponse object
+    response = {
         'form_id': '',
         'next_action': '',
         'modal': render_to_string('designsec/admin_modal_form.html', context, request)
-    })
-    response.status_code = 200
-    return response
+    }
+    return response, 200
 
 
 # todo we need to be able to specify the action for jquery to perform when modal is closed.
@@ -340,10 +268,8 @@ def edit_modal(request, target, edit_target):
         loaded = formset(request.POST)
         if loaded.is_valid():
             loaded.save()
-            return HttpResponse(status=200)
-        response = JsonResponse(loaded.errors.as_json(), safe=False)
-        response.status_code = 400
-        return response
+            return {}, 200
+        return loaded.errors.as_json(), 400
     # generate the form for the first time
     context = {
         'operation': 'edit',
@@ -351,33 +277,51 @@ def edit_modal(request, target, edit_target):
         'formset': formset(instance=edit_target),
         'select_check': '',
         'success_color': 'success',
-        'cancel_color': 'danger'
+        'cancel_color': 'danger',
+        'id': edit_target.pk
     }
     context.update(MODAL_OPTIONS[target])
-    return render(request, 'designsec/admin_modal_form.html', context)
+    # todo complete this JsonResponse object
+    response = {
+        'form_id': '',
+        'next_action': '',
+        'modal': render_to_string('designsec/admin_modal_form.html', context, request)
+    }
+    return response, 200
 
 
 def delete_modal(request, target, edit_target):
-    form = MODAL_DELETE_FORMS[target]
+    form = MODAL_MODEL_FORMS[target]
     if request.POST.get('loaded', None) is not None:
         # we have already been here once, validate and try to delete the object
         loaded = form(request.POST)
+        # todo ensure that this properly protects against deleting 'ALL'
         if loaded.is_valid():
             edit_target.delete()
-            return HttpResponse(status=200)
-        response = JsonResponse(loaded.errors.as_json(), safe=False)
-        response.status_code = 400
-        return response
+            return {}, 200
+        return loaded.errors.as_json(), 400
     # generate the form for the first time
+    f = form(instance=edit_target)
+    f.make_readonly()
+    # todo figure out why readonly does not work on multi-select -- does this matter?
     context = {
         'operation': 'delete',
         'target': target,
-        'formset': form(edit_target),
+        'formset': f,
         'select_check': '',
         'success_color': 'success',
-        'cancel_color': 'danger'
+        'cancel_color': 'danger',
+        'id': edit_target.pk
     }
-    context.update(MODAL_OPTIONS[target])
+    operation_target = 'delete{}'.format(target.capitalize())
+    response = {
+        'form_id': '#{}Form'.format(operation_target),
+        'form_button': '#{}Button'.format(operation_target),
+        'modal_id': '#{}Modal'.format(operation_target),
+        'modal': render_to_string('designsec/admin_modal_form.html', context, request)
+    }
+    return response, 200
+
 
 
 def generate_edit_project_view(request, project):
@@ -385,7 +329,7 @@ def generate_edit_project_view(request, project):
     ADMIN INTERFACE
 
     :param request: HTTP request object containing request metadata
-    :param project:
+    :param project: Hex representation of target project's UUID
     :return:
     """
     # todo complete this, change from main.html
@@ -423,8 +367,8 @@ def list_projects(request):
     for p in Project.objects.all():
         pr = {
             'name': p.name,
-            'pid_short': '{}...'.format(p.pid.hex[:8]),
             'pid': p.pid.hex,
+            'pk': p.pk,
             'added': p.added,
             'modified': p.modified,
             'contact': '; '.join([c.email.split('@')[0] for c in p.contact.order_by('email')]),
@@ -433,15 +377,8 @@ def list_projects(request):
         }
         context['projects'].append(pr)
 
-    modal = {
-        'operation': 'create',
-        'target': 'project',
-        'formset': design_forms.ProjectModelForm(),
-        'select_check': 'contact',
-        'success_color': 'success',
-        'cancel_color': 'danger'
-    }
+    modal_response, _ = add_modal(request, 'project')
 
-    context['modal'] = render_to_string('designsec/admin_modal_form.html', modal, request)
+    context['add_project_modal'] = modal_response['modal']
 
     return render(request, 'designsec/adminList.html', context)
