@@ -139,7 +139,7 @@ class Project(models.Model):
     """
     A collection of recommendations for a specific project
     """
-    pid = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    pid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     name = models.CharField(max_length=100)
     contact = models.ManyToManyField(Contact, blank=True)
     description = models.TextField(default=None)
