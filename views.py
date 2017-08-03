@@ -55,6 +55,10 @@ MODAL_OPTIONS = {
 }
 
 
+def redirect_to_default_view(request):
+    return redirect('default', permanent=True)
+
+
 def get_recommendation_by_category(cat=None, p_uid=None):
     """
     Get a list of recommendations based on the desired category for a project
