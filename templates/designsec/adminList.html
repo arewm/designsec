@@ -10,7 +10,7 @@
     <script src="/static/designsec/js/tinymce/tinymce.min.js"></script>
     <script src="/static/designsec/js/admin.js"></script>
 
-    <link rel="stylesheet" type="text/css" href="/static/designsec/css/bootstrap-modal-bs3patch.css">
+{#    <link rel="stylesheet" type="text/css" href="/static/designsec/css/bootstrap-modal-bs3patch.css">#}
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css">
@@ -50,12 +50,9 @@
                     {#            permalinks, creation date, number of recommendations, updated date, number of#}
                     {#              views, and last visit#}
                     <td class="min-td-width" data-order="{{ p.pid }}" data-search="{{ p.pid }}">
-                        <p>
-                        <a href="#" data-toggle="tooltip" title="{{ p.pid }}" data-container="body">{{ p.pid_short }}</a><br />
                         <a href="{% url 'project' project=p.pid %}" class="btn btn-primary">View</a>
                         <a href="{% url 'edit_project' project=p.pid %}" class="btn btn-warning">Edit</a>
-                        <a href="#" class="btn btn-danger delete-project" id="delete-{{ p.pid }}">Delete</a>
-                    </p></td>
+                        <a href="#" class="btn btn-danger delete-project" id="delete-{{ p.pk }}">Delete</a></td>
                     <td class="max-td-width"><p class="text-capitalize">{{ p.name }}</p></td>
                     <td data-order="{{ p.added|date:'U' }}"><p>{{ p.added }}</p></td>
                     <td data-order="{{ p.modified|date:'U' }}"><p>{{ p.modified }}</p></td>
@@ -70,61 +67,13 @@
     </div>
 </div>
 <!-- Create Project Modal -->
-<div id="createProjectModal" class="modal fade" role="dialog">
-    <div class="modal-dialog">
-        <!-- Modal content-->
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                <h4 class="modal-title">Create Project</h4>
-            </div>
-            <div class="modal-body">
-                <form id="createProjectForm" method="post" action="{% url 'create_project' %}">
-                    {% csrf_token %}
-                    {{ contact_formset.management_form }}
-                    {% for form in contact_formset %}
-                        <div id="error_{{ form.html_name }}" class="form-error"></div>
-                        {% if form.help_text %}
-                            <p><a href="#" data-toggle="tooltip" data-viewport=".modal-content" data-placement="right" title="{{ form.help_text }}">{{ form.label }}</a><br />
-                           {{ form }} </p>
-                        {% else %}
-                            <div>{{ form.label }}</div><br /><p>{{ form }} </p>
-                        {% endif %}
-                    {% endfor %}
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button id="createProjectButton"  type="button" class="btn btn-success" >Create</button>
-                <button type="button" class="btn btn-danger" data-dismiss="modal">Cancel</button>
-                <button id="resetCreateProjectFormButton" type="button" class="btn btn-outline-secondary">Reset</button>
-            </div>
-        </div>
 
-    </div>
-</div>
+{{ add_project_modal }}
 <!-- Delete Project Modal -->
-<div id="deleteProjectModal" class="modal fade" role="dialog">
-    <div class="modal-dialog">
-        <!-- Modal content -->
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal">x</button>
-                <h4 class="modal-title">Delete Project</h4>
-            </div>
-            <div class="modal-body">
-                <div>Are you sure you want to delete the project:</div>
-                <div id="projectDeleteId"></div>
-                <form id="deleteProjectForm" method="post" action="{% url 'delete_project' %}">
-                    {% csrf_token %}
-                    <input id="deleteProjectField" type="hidden" name="project" value=""/>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button id="deleteProjectButton" type="button" class="btn btn-danger">Delete</button>
-                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Cancel</button>
-            </div>
-        </div>
-    </div>
-</div>
+<form id="deleteModalMaker" action="{% url 'get_modal' op='delete' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="target" value="project">
+    <input type="hidden" name="id" value="">
+</form>
 </body>
 </html>
