@@ -18,18 +18,18 @@ jQuery.fn.removeAttributes = function () {
  * Show the create project modal, used to register a click event on the relevant button
  */
 function addProjectModal() {
-    $('#createProjectModal').modal('show');
+    $('#addProjectModal').modal('show');
 }
 
 /**
  * Ajax function to add a project
  * If there is an error with validation, we will put the relevant message next to the field where the error occurred
- * If the project is successfully created, the webpage body will be replaced
+ * If the project is successfully created, the page will be reloaded
  *
  * An unknown error (non-success from server) will create an alert
  */
 function addProjectAjax() {
-    var frm = $(document).find('#createProjectForm');
+    var frm = $(document).find('#addProjectForm');
     frm.find('textarea').each(function () {
         $(this).html(tinyMCE.get($(this).attr('id')).getContent());
     });
@@ -38,8 +38,8 @@ function addProjectAjax() {
         type: frm.attr('method'),
         url: frm.attr('action'),
         data: frm.serialize(),
-        success: function (data) {
-            replaceBody(data);
+        success: function () {
+            location.reload();
         },
         error: function (jqXHR) {
             if (jqXHR.status === 400) {
@@ -56,41 +56,69 @@ function addProjectAjax() {
 }
 
 /**
- * Show the delete project modal, used to register a click event on the relevant button
+ * Get the delete project modal, show it, and register the submit click
  */
+var lastModal = null;
 function deleteProjectModal() {
-    var pid = $(this).attr('id').substring(7);
-    $('#projectDeleteId').html(pid);
-    $('#deleteProjectModal').modal('show');
-    $('#deleteProjectField').attr('value', pid);
+    var projId = $(this).attr('id').substring(7);
+    deleteModalMaker = $('#deleteModalMaker');
+    deleteModalMaker.find('input[name=id]').val(projId);
+    $.ajax({
+        type: deleteModalMaker.attr('method'),
+        url: deleteModalMaker.attr('action'),
+        data: deleteModalMaker.serialize(),
+        success: function (resp) {
+            console.log(resp);
+            if (lastModal !== null) {
+                $(resp.form_button).off('click');
+                lastModal.remove()
+            }
+            $('body').append(resp.modal);
+            var modal = $(resp.modal_id);
+
+            $(resp.form_button).on('click', deleteProjectAjax(resp.form_id));
+            modal.modal('show');
+            lastModal = modal;
+        },
+        error: function() {
+            alert('Something went wrong!')
+        }
+    });
 }
 
 /**
  * Ajax function to delete a project
- * Successful responses will replace the body of the current list
+ * Successful responses will reload the window
  *
  * Unknown errors will create an alert box
  */
-function deleteProjectAjax() {
-    var frm = $(document).find('#deleteProjectForm');
-    $.ajax({
-        type: frm.attr('method'),
-        url: frm.attr('action'),
-        data: frm.serialize(),
-        success: function (data) {
-            replaceBody(data);
-        },
-        error: function () {
-            alert('Something went wrong!');
-        }
-    });
+function deleteProjectAjax(formId) {
+    var frm = $(document).find(formId);
+    return function () {
+        $.ajax({
+            type: frm.attr('method'),
+            url: frm.attr('action'),
+            data: frm.serialize(),
+            success: function () {
+                location.reload()
+            },
+            error: function (jqXHR) {
+                if (jqXHR.status === 400) {
+                    alert(jqXHR.responseJSON.reason);
+                }
+                else {
+                    alert('Something went wrong!')
+                }
+            }
+        });
+    }
 }
 
 /**
  * Reset the create project form, used to register a click event on the relevant button
  */
 function resetAndClearCreateForm() {
-    resetAndClearForm($('#createProjectForm'));
+    resetAndClearForm($('#addProjectForm'));
 }
 
 /**
@@ -119,37 +147,26 @@ function resetAndClearForm(form) {
 }
 
 /**
- * Replace the body of the current document with the body contained within the input.
- * To make sure events do not fire more than once, we have to make sure to remove the 'click' events that we added before
- * @param html String containing a <body></body> element to replace with
+ * Function to allow additional values in a multi-select box to be created. Clearly not implemented yet.
  */
-function replaceBody(html) {
-    // We have to make sure to remove the old click listeners so that we do not get multiple submits
-    $('.add-project').off('click', addProjectModal);
-    $('#resetCreateProjectFormButton').off('click', resetAndClearCreateForm);
-    $('.delete-project').off('click', deleteProjectModal);
-    $(document).off('click', '#createProjectButton', addProjectAjax);
-    $(document).off('click', '#deleteProjectButton', deleteProjectAjax);
-
-    // Replace the old body with the new body
-    $('body').empty().removeAttributes().html(html.substring(html.indexOf("<body>") + 6, html.indexOf("</body>")));
-    tinymce.remove();
-    onReady();
+function makeSelectAdd() {
+    $('.check-select').find('select').each(function () {
+        console.log($(this).attr('name'))
+    })
 }
 
 /**
- * Initialization function to be called every time we have loaded the page/new body
+ * Make sure everything is properly initialized once the document is ready
  */
-function onReady() {
+$(document).ready(function () {
     // show tooltips
     $('[data-toggle="tooltip"]').tooltip();
     // enable modals
     $('.add-project').on('click', addProjectModal);
-    $('#resetCreateProjectFormButton').on('click', resetAndClearCreateForm);
+    $('#resetAddProjectFormButton').on('click', resetAndClearCreateForm);
     $('.delete-project').on('click', deleteProjectModal);
     // register Ajax functions
-    $(document).on('click', '#createProjectButton', addProjectAjax);
-    $(document).on('click', '#deleteProjectButton', deleteProjectAjax);
+    $(document).on('click', '#addProjectButton', addProjectAjax);
     // Convert the adminTable to a DataTable object
     var table = $('#adminTable').DataTable({
         paging: true,
@@ -180,13 +197,6 @@ function onReady() {
             '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
             '//www.tinymce.com/css/codepen.min.css']
     });
-}
-
-/**
- * Make sure everything is properly initialized once the document is ready
- */
-$(document).ready(function () {
-    onReady();
     $(document).on('hidden.bs.modal', function () {
         clearFormErrors($(this).find('form'))
     });
