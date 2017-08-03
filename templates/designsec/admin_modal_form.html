@@ -1,7 +1,7 @@
 {# operation, target, formset, select_check, success_color, cancel_color, [id] #}
 {# jquery: .find(`[data-operation='submit/reset']`) #}
 
-<div id="{{ operation }}{{ target|capfirst }}Modal" class="modal fade hide" role="dialog" tabindex="-1" data-focus-on="input:first">
+<div id="{{ operation }}{{ target|capfirst }}Modal" class="modal fade " role="dialog" >
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -10,7 +10,7 @@
             </div>
             <div class="modal-body">
                 {% if operation == 'delete' %}<p>Are you sure you want to delete the {{ target }}:</p> {% endif %}
-                <form id="{{ operation }}{{ target }}Form" method="post" {% if select_check %}data-check-select="{{ select_check }}" {% endif %}action="{% url 'get_modal' op=operation %}">
+                <form id="{{ operation }}{{ target|capfirst }}Form" method="post" {% if select_check %}data-check-select="{{ select_check }}" {% endif %}action="{% url 'get_modal' op=operation %}">
                     {% csrf_token %}
                     {{ formset.management_form }}
                     <input type="hidden" name="target" value="{{ target }}">
