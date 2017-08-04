@@ -144,7 +144,7 @@ class Project(models.Model):
     contact = models.ManyToManyField(Contact, blank=True)
     description = models.TextField(default=None)
     trust = models.TextField(default=None)
-    item = models.ManyToManyField(Recommendation, blank=True)
+    recommendation = models.ManyToManyField(Recommendation, blank=True)
     visits = models.PositiveIntegerField(default=0)
     last_visit = models.DateTimeField(default=None, null=True)
     added = models.DateTimeField(auto_now_add=True)
