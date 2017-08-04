@@ -8,7 +8,8 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
     <script src="/static/designsec/js/tinymce/tinymce.min.js"></script>
-    <script src="/static/designsec/js/admin.js"></script>
+    <script src="/static/designsec/js/admin/modal_generator.js"></script>
+    <script src="/static/designsec/js/admin/list_projects.js"></script>
 
 {#    <link rel="stylesheet" type="text/css" href="/static/designsec/css/bootstrap-modal-bs3patch.css">#}
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
@@ -52,7 +53,7 @@
                     <td class="min-td-width" data-order="{{ p.pid }}" data-search="{{ p.pid }}">
                         <a href="{% url 'project' project=p.pid %}" class="btn btn-primary">View</a>
                         <a href="{% url 'edit_project' project=p.pid %}" class="btn btn-warning">Edit</a>
-                        <a href="#" class="btn btn-danger delete-project" id="delete-{{ p.pk }}">Delete</a></td>
+                        <a href="#" class="btn btn-danger delete-project" id="delete-{{ p.pk }}" data-target="project" data-id="{{ p.pk }}" data-modal-operation="delete">Delete</a></td>
                     <td class="max-td-width"><p class="text-capitalize">{{ p.name }}</p></td>
                     <td data-order="{{ p.added|date:'U' }}"><p>{{ p.added }}</p></td>
                     <td data-order="{{ p.modified|date:'U' }}"><p>{{ p.modified }}</p></td>
@@ -63,13 +64,17 @@
             {% endfor %}
             </tbody>
         </table>
-    <a href="#" class="btn btn-primary add-project">Add Project</a>
+    <a href="#" class="btn btn-primary add-project" data-target="project" data-id="{{ p.pk }}" data-modal-operation="add">Add Project</a>
     </div>
 </div>
 <!-- Create Project Modal -->
 
-{{ add_project_modal }}
 <!-- Delete Project Modal -->
+<form id="addModalMaker" action="{% url 'get_modal' op='add' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="target" value="">
+    <input type="hidden" name="id" value="">
+</form>
 <form id="deleteModalMaker" action="{% url 'get_modal' op='delete' %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="target" value="">

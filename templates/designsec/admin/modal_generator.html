@@ -1,7 +1,7 @@
 {# operation, target, formset, select_check, success_color, cancel_color, [id] #}
 {# jquery: .find(`[data-operation='submit/reset']`) #}
 
-<div id="{{ operation }}{{ target|capfirst }}Modal" class="modal fade " role="dialog" >
+<div id="{{ operation }}{{ target|capfirst }}Modal" class="modal fade " role="dialog" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
@@ -13,6 +13,7 @@
                 <form id="{{ operation }}{{ target|capfirst }}Form" method="post" {% if select_check %}data-check-select="{{ select_check }}" {% endif %}action="{% url 'get_modal' op=operation %}">
                     {% csrf_token %}
                     {{ formset.management_form }}
+                    <div id="error_{{ target }}" class="form-error"></div>
                     <input type="hidden" name="target" value="{{ target }}">
                     {% if id %}<input type="hidden" name="id" value="{{ id }}">{% endif %}
                     <input type="hidden" name="loaded" value="true">
@@ -30,7 +31,7 @@
             <div class="modal-footer">
                 <button id="{{ operation }}{{ target|capfirst }}Button"  type="button" class="btn btn-{{ success_color }}" data-operation="submit">{{ operation|capfirst }}</button>
                 <button type="button" class="btn btn-{{ cancel_color }}" data-dismiss="modal" >Cancel</button>
-                {% if operation != 'delete' %}<button id="reset{{ operation }}{{ target|capfirst }}FormButton" type="button" class="btn btn-outline-secondary" data-option="reset">Reset</button>{% endif %}
+                {% if operation != 'delete' %}<button id="reset{{ operation|capfirst }}{{ target|capfirst }}FormButton" type="button" class="btn btn-outline-secondary" data-option="reset">Reset</button>{% endif %}
             </div>
         </div>
     </div>

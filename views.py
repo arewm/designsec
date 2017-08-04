@@ -283,16 +283,17 @@ def add_modal(request, target):
         'cancel_color': 'danger'
     }
     context.update(MODAL_OPTIONS[target])
-    # todo complete this JsonResponse object
+    operation_target = 'add{}'.format(target.capitalize())
     response = {
-        'form_id': '',
-        'next_action': '',
+        'form_id': '#{}Form'.format(operation_target),
+        'form_button': '#{}Button'.format(operation_target),
+        'modal_id': '#{}Modal'.format(operation_target),
         'modal': render_to_string('designsec/admin/modal_generator.html', context, request)
     }
     return response, 200
 
 
-# todo we need to be able to specify the action for jquery to perform when modal is closed.
+# todo do we need to be able to specify the action for jquery to perform when modal is closed?
 
 def edit_modal(request, target, edit_target):
     # Determine what formset we are trying to show
@@ -315,10 +316,11 @@ def edit_modal(request, target, edit_target):
         'id': edit_target.pk
     }
     context.update(MODAL_OPTIONS[target])
-    # todo complete this JsonResponse object
+    operation_target = 'edit{}'.format(target.capitalize())
     response = {
-        'form_id': '',
-        'next_action': '',
+        'form_id': '#{}Form'.format(operation_target),
+        'form_button': '#{}Button'.format(operation_target),
+        'modal_id': '#{}Modal'.format(operation_target),
         'modal': render_to_string('designsec/admin/modal_generator.html', context, request)
     }
     return response, 200
@@ -412,9 +414,5 @@ def list_projects(request):
             'last_visit': p.last_visit
         }
         context['projects'].append(pr)
-
-    modal_response, _ = add_modal(request, 'project')
-
-    context['add_project_modal'] = modal_response['modal']
 
     return render(request, 'designsec/admin/list_projects.html', context)
