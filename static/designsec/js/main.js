@@ -15,6 +15,10 @@ var getUrlParameter = function getUrlParameter(sParam) {
     }
 };
 $(document).ready(function () {
+    // show tooltips
+    $('[data-toggle="tooltip"]').tooltip({
+        trigger : 'hover'
+}   );
     var listLoader = $('#list-maker');
     var category = getUrlParameter('category');
     var categorySorters = $('#category-sorters');

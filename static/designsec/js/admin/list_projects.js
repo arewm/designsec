@@ -58,11 +58,46 @@ function addProjectAjax() {
 /**
  * Get the delete project modal, show it, and register the submit click
  */
-var lastModal = null;
+var lastDeleteProjectModal = null;
 function deleteProjectModal() {
     var projId = $(this).attr('id').substring(7);
-    deleteModalMaker = $('#deleteModalMaker');
-    deleteModalMaker.find('input[name=id]').val(projId);
+    // deleteModalMaker = $('#deleteModalMaker');
+    // deleteModalMaker.find('input[name=id]').val(projId);
+    // deleteModalMaker.find('input[name=target]').val('project');
+    // $.ajax({
+    //     type: deleteModalMaker.attr('method'),
+    //     url: deleteModalMaker.attr('action'),
+    //     data: deleteModalMaker.serialize(),
+    //     success: function (resp) {
+    //         console.log(resp);
+    //         if (lastModal !== null) {
+    //             $(resp.form_button).off('click');
+    //             lastModal.remove()
+    //         }
+    //         $('body').append(resp.modal);
+    //         var modal = $(resp.modal_id);
+    //
+    //         $(resp.form_button).on('click', deleteProjectAjax(resp.form_id));
+    //         modal.modal('show');
+    //         lastModal = modal;
+    //     },
+    //     error: function() {
+    //         alert('Something went wrong!')
+    //     }
+    // });
+    getModal(projId, '#deleteModalMaker', 'project', lastDeleteProjectModal)
+}
+
+var lastEditContactModal = null;
+function editContactModal(){
+    var projectId = $(this).attr('id').substring(5);
+    getModal(projectId, '#editModalMaker', 'contact', lastEditContactModal)
+}
+
+function getModal(projectId, formId, target, lastModal){
+    deleteModalMaker = $(formId);
+    deleteModalMaker.find('input[name=id]').val(projectId);
+    deleteModalMaker.find('input[name=target]').val(target);
     $.ajax({
         type: deleteModalMaker.attr('method'),
         url: deleteModalMaker.attr('action'),
@@ -160,11 +195,14 @@ function makeSelectAdd() {
  */
 $(document).ready(function () {
     // show tooltips
-    $('[data-toggle="tooltip"]').tooltip();
+    $('[data-toggle="tooltip"]').tooltip({
+        trigger : 'hover'
+    });
     // enable modals
     $('.add-project').on('click', addProjectModal);
     $('#resetAddProjectFormButton').on('click', resetAndClearCreateForm);
     $('.delete-project').on('click', deleteProjectModal);
+    $('.edit-contact').on('click', editContactModal);
     // register Ajax functions
     $(document).on('click', '#addProjectButton', addProjectAjax);
     // Convert the adminTable to a DataTable object

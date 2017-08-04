@@ -24,7 +24,6 @@ body {
     background-color: #ffffff;
     padding:5px;
     margin-top: 5px;
-    overflow: scroll;
 }
 
 .half-top {
@@ -56,41 +55,17 @@ body {
 .panel-heading .expand-toggle:after {
     /* symbol for "expanded" divs */
     font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
-    content: "\2212";    /* minus, taken from bootstrap.css */
+    /*content: "\2212";    !* minus, taken from bootstrap.css *!*/
+    content: "\e114";       /*c hevron down, taken from bootstrap.css */
     float: right;
     color: grey;
 }
 .panel-heading .expand-toggle.collapsed:after {
     /* symbol for "collapsed" divs */
-    content: "\2b";    /* plus, taken from bootstrap.css */
+    /*content: "\2b";    !* plus, taken from bootstrap.css *!*/
+    content: "\e080";      /*chevron right, taken from bootstrap.css */
 }
 
-#adminTable_wrapper {
-    margin-top: 1em;
-}
-
-div.tooltip-inner {
-    max-width: 350px;
-}
-
-table.dataTable thead td {
-    text-align: center;
-    vertical-align: middle;
-}
-
-table.dataTable tbody td {
-    text-align: center;
-    vertical-align: middle;
-}
-
-.min-td-width {
-    min-width: 180px;
-}
-
-.max-td-width {
-    max-width: 300px;
-}
-
-.form-error {
-    color: #CC3434;
+#permalink {
+    float: right;
 }

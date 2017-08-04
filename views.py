@@ -2,7 +2,7 @@
 # Generate a response wrapping the previous
 
 # Generate a view for the admin where you can add items
-#   for each item, break on newline and add a <p></p> around each paragraph
+#   for each recommendation, break on newline and add a <p></p> around each paragraph
 #   strip out each html tag that is not supported.
 #       This will also have to allow the admin to create new classifications
 #           Specify classifications for each category
@@ -11,7 +11,7 @@
 # Allow the admin to create new classifications
 # Allow the admin to drag the recommendations around to different classifications
 
-# When adding a new item, create a popup to specify the classification for each category?
+# When adding a new recommendation, create a popup to specify the classification for each category?
 
 import uuid
 
@@ -75,7 +75,7 @@ def get_recommendation_by_category(cat=None, p_uid=None):
         uid = uuid.UUID(p_uid)
     try:
         p = get_object_or_404(Project, pid=uid)
-        lst = p.item.all()
+        lst = p.recommendation.all()
     except Http404:
         lst = Recommendation.objects.all()
 
@@ -140,7 +140,7 @@ def generate_default_view(request, category=None):
         'category_request': category,
         'rec_list': recommendations
     }
-    return render(request, 'designsec/main.html', context)
+    return render(request, 'designsec/project.html', context)
 
 
 def generate_recommendation_by_category(request, project=None, category=None):
@@ -168,7 +168,7 @@ def generate_recommendation_by_category(request, project=None, category=None):
         'pid': project,
         'permalink': url
     }
-    return render(request, 'designsec/main-recommendations.html', context)
+    return render(request, 'designsec/projects_recommendation.html', context)
 
 
 def generate_project_view(request, project=None, category=None):
@@ -181,6 +181,8 @@ def generate_project_view(request, project=None, category=None):
     # todo keep track of the number of views and the last view as long as an admin is not logged in (maybe?)
 
     p_uid = uuid.UUID(project)
+    if category is None:
+        category = request.GET.get('category', None)
     try:
         p = get_object_or_404(Project, pid=p_uid)
     except Http404:
@@ -189,17 +191,15 @@ def generate_project_view(request, project=None, category=None):
         notice += 'recommendations are displayed. Please contact a member of {} '.format(knox.mailto(subject=subject))
         notice += 'if you believe this is a mistake'
         messages.add_message(request, messages.ERROR, notice)
-        return generate_default_view(request)
+        return generate_default_view(request, category)
 
-    if category is None:
-        category = request.GET.get('category', None)
     context = {
         'project': p,
-        'category': Category.objects.all(),
+        'category': Category.objects.filter(classification__recommendation__project=p).distinct(),
         'category_request': category,
         'pid': project
     }
-    return render(request, 'designsec/main.html', context)
+    return render(request, 'designsec/project.html', context)
 
 
 # todo create a helper function similar to get_recommendation_by_category for the default view (?)
@@ -287,7 +287,7 @@ def add_modal(request, target):
     response = {
         'form_id': '',
         'next_action': '',
-        'modal': render_to_string('designsec/admin_modal_form.html', context, request)
+        'modal': render_to_string('designsec/admin/modal_generator.html', context, request)
     }
     return response, 200
 
@@ -319,7 +319,7 @@ def edit_modal(request, target, edit_target):
     response = {
         'form_id': '',
         'next_action': '',
-        'modal': render_to_string('designsec/admin_modal_form.html', context, request)
+        'modal': render_to_string('designsec/admin/modal_generator.html', context, request)
     }
     return response, 200
 
@@ -352,7 +352,7 @@ def delete_modal(request, target, edit_target):
         'form_id': '#{}Form'.format(operation_target),
         'form_button': '#{}Button'.format(operation_target),
         'modal_id': '#{}Modal'.format(operation_target),
-        'modal': render_to_string('designsec/admin_modal_form.html', context, request)
+        'modal': render_to_string('designsec/admin/modal_generator.html', context, request)
     }
     return response, 200
 
@@ -380,11 +380,13 @@ def generate_edit_project_view(request, project):
         messages.add_message(request, messages.WARNING, "The project ID {} is invalid.".format(project))
         return redirect('list')
 
-    context = {'project': p,
-               'category': Category.objects.all(),
-               'rec_list': get_recommendation_by_category(p_uid=p_uid),
-               'pid': project}
-    return render(request, 'designsec/main.html', context)
+    context = {
+        'project': p,
+        'category': Category.objects.filter(classification__recommendation__project=p).distinct(),
+        'rec_list': get_recommendation_by_category(p_uid=project),
+        'pid': project
+    }
+    return render(request, 'designsec/admin/project.html', context)
 
 
 def list_projects(request):
@@ -415,4 +417,4 @@ def list_projects(request):
 
     context['add_project_modal'] = modal_response['modal']
 
-    return render(request, 'designsec/adminList.html', context)
+    return render(request, 'designsec/admin/list_projects.html', context)

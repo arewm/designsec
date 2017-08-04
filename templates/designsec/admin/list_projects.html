@@ -58,7 +58,7 @@
                     <td data-order="{{ p.modified|date:'U' }}"><p>{{ p.modified }}</p></td>
                     <td><p>{{ p.rec_count }}</p></td>
                     <td><p>{{ p.last_visit }}</p></td>
-                    <td><p>{{ p.contact }}</p></td>
+                    <td data-order="{{ p.contact }}" data-search="{{ p.contact }}"><p>{% if p.contact %}{{ p.contact }}{% else %}None{% endif %}</p></td>
                 </tr>
             {% endfor %}
             </tbody>
@@ -72,7 +72,12 @@
 <!-- Delete Project Modal -->
 <form id="deleteModalMaker" action="{% url 'get_modal' op='delete' %}" method="post">
     {% csrf_token %}
-    <input type="hidden" name="target" value="project">
+    <input type="hidden" name="target" value="">
+    <input type="hidden" name="id" value="">
+</form>
+<form id="editModalMaker" action="{% url 'get_modal' op='edit' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="target" value="">
     <input type="hidden" name="id" value="">
 </form>
 </body>

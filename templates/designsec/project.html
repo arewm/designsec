@@ -58,13 +58,9 @@
 {#        <div id="recommendations" class="panel-group" role="tablist" aria-multiselectable="true">#}
         <div id="recommendations" class="panel-group">
             {% if pid %}
-                <form id="list-maker" action="{% url 'project_sort' project=pid %}" method="get">
-                    {% csrf_token %}
-                </form>
+                <form id="list-maker" action="{% url 'project_sort' project=pid %}"></form>
             {% else %}
-                <form id="list-maker" action="{% url 'default_sort' %}">
-                    {% csrf_token %}
-                </form>
+                <form id="list-maker" action="{% url 'default_sort' %}"></form>
             {% endif %}
         </div>
     </div>
@@ -72,11 +68,11 @@
 
 {# Hidden forms to use for sorting the recommendations #}
 {% if pid %}
-    <form id="category-selector" action="{% url 'project_sort' project=pid %}" method="get">
+    <form id="category-selector" action="{% url 'project_sort' project=pid %}">
         <input id="category-sort" type="hidden" name="category" value="{{ category_select }}"/>
     </form>
 {% else %}
-    <form id="category-selector" action="{% url 'default_sort' %}" method="get">
+    <form id="category-selector" action="{% url 'default_sort' %}">
         <input id="category-sort" type="hidden" name="category" value="{{ category_select }}"/>
     </form>
 {% endif %}
