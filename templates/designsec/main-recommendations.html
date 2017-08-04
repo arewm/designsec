@@ -1,5 +1,4 @@
 {% for _, classification, recommendations in rec_list %}
-    {# todo make these things with slide down, etc. using javascript #}
     <div class="panel panel-info">
         <div class="panel-heading">
             <h4 class="panel-title">
@@ -38,4 +37,5 @@
         </div>
     </div>
 {% endfor %}
+<div id="permalink"><a href="{{ permalink|safe }}">permalink</a></div>
 

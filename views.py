@@ -19,6 +19,8 @@ from django.contrib import messages
 from django.http import Http404, JsonResponse, HttpResponseNotAllowed, HttpResponseBadRequest
 from django.shortcuts import redirect, render, get_object_or_404
 from django.template.loader import render_to_string
+from django.urls import reverse
+from django.urls.exceptions import NoReverseMatch
 from designsec.models import Category, Recommendation, Project, Contact, Classification
 from designsec.forms import ProjectModelForm, CategoryModelForm, \
     RecommendationModelForm, ContactModelForm, ClassificationModelForm
@@ -68,8 +70,11 @@ def get_recommendation_by_category(cat=None, p_uid=None):
                   all recommendations.
     :return: A list of classification, recommendation list tuples
     """
+    uid=None
+    if p_uid is not None:
+        uid = uuid.UUID(p_uid)
     try:
-        p = get_object_or_404(Project, pid=p_uid)
+        p = get_object_or_404(Project, pid=uid)
         lst = p.item.all()
     except Http404:
         lst = Recommendation.objects.all()
@@ -110,29 +115,35 @@ def get_recommendation_by_category(cat=None, p_uid=None):
     # sort the recommendations for each classification
     [r[2].sort(key=lambda x: x[0].name) for r in classification_list]
 
-    return classification_list
+    return classification_list, cat_obj.id
 
 
-def generate_default_view(request):
+def generate_default_view(request, category=None):
     """
     Generate the view that includes all recommendations without a project description.
     :param request: HTTP request object containing request metadata
     :return:
     """
+    if category is None:
+        category = request.GET.get('category', None)
     if not messages.get_messages(request):
         notice = 'No project was selected. All possible recommendations are displayed. '
         notice += 'To customize the recommendations for  your project, contact a member of '
         notice += '{} to begin a security review.'.format(knox.mailto('Security recommendation request'))
         messages.add_message(request, messages.WARNING, notice)
 
-    context = {'description': '',
-               'trust': '',
-               'category': Category.objects.all(),
-               'rec_list': get_recommendation_by_category()}
+    recommendations, _ = get_recommendation_by_category()
+    context = {
+        'description': '',
+        'trust': '',
+        'category': Category.objects.all(),
+        'category_request': category,
+        'rec_list': recommendations
+    }
     return render(request, 'designsec/main.html', context)
 
 
-def generate_recommendation_by_category(request, project=None):
+def generate_recommendation_by_category(request, project=None, category=None):
     """
     Sort the recommendations for a project based on the passed POST parameters
     :param request: HTTP request object containing request metadata
@@ -140,11 +151,27 @@ def generate_recommendation_by_category(request, project=None):
     :return: The rendered webpage
     """
     # todo complete this
-    context = {'rec_list': get_recommendation_by_category(cat=request.POST.get('category', None), p_uid=project)}
+    if category is None:
+        category = request.GET.get('category', None)
+
+    recommendations, category = get_recommendation_by_category(cat=category, p_uid=project)
+    try:
+        url = request.build_absolute_uri(reverse('project_category', kwargs={'project': project, 'category': category}))
+    except NoReverseMatch:
+        url = request.build_absolute_uri(reverse('default_category', kwargs={'category': category}))
+    # the url generation is a bit of a hack. It escapes the question mark, so we need to change it back
+    # to permalink the get parameter
+    url = url.replace('%3F', '?', 1)
+    context = {
+        'rec_list': recommendations,
+        'category': category,
+        'pid': project,
+        'permalink': url
+    }
     return render(request, 'designsec/main-recommendations.html', context)
 
 
-def generate_project_view(request, project):
+def generate_project_view(request, project=None, category=None):
     """
     Generate the default view for a specified project. If the project cannot be found, a default view will be generated
     :param request: HTTP request object containing request metadata
@@ -152,7 +179,6 @@ def generate_project_view(request, project):
     :return: The rendered webpage
     """
     # todo keep track of the number of views and the last view as long as an admin is not logged in (maybe?)
-    # todo allow a specific sorting to be permalinked
 
     p_uid = uuid.UUID(project)
     try:
@@ -165,10 +191,14 @@ def generate_project_view(request, project):
         messages.add_message(request, messages.ERROR, notice)
         return generate_default_view(request)
 
-    context = {'project': p,
-               'category': Category.objects.all(),
-               'rec_list': get_recommendation_by_category(p_uid=p_uid),
-               'pid': project}
+    if category is None:
+        category = request.GET.get('category', None)
+    context = {
+        'project': p,
+        'category': Category.objects.all(),
+        'category_request': category,
+        'pid': project
+    }
     return render(request, 'designsec/main.html', context)
 
 
