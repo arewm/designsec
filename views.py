@@ -408,7 +408,7 @@ def list_projects(request):
             'added': p.added,
             'modified': p.modified,
             'contact': '; '.join([c.email.split('@')[0] for c in p.contact.order_by('email')]),
-            'rec_count': p.item.count(),
+            'rec_count': p.recommendation.count(),
             'last_visit': p.last_visit
         }
         context['projects'].append(pr)
