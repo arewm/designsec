@@ -232,6 +232,7 @@ def get_modal(request, op=None):
         return HttpResponseNotAllowed(permitted_methods=['POST'])
     if request.POST.get('target', None) not in SUPPORTED_MODAL_CLASSES:
         return HttpResponseBadRequest()
+
     # Determine what class we are trying to make a modal for
     target = request.POST.get('target')
     content, status = None, None  # initialization
@@ -241,14 +242,18 @@ def get_modal(request, op=None):
     else:
         # The rest need an ID
         t_id = request.POST.get('id', None)
+        # make sure that the id is not escaped
+        if t_id[:3] == 'pk-':
+            t_id = t_id[3:]
         try:
             target_obj = get_object_or_404(SUPPORTED_MODAL_CLASSES[target], pk=t_id)
         except Http404:
             return JsonResponse({'status': '400', 'reason': 'Invalid ID provided'}, status=400)
-        if op == 'add':
+        if op == 'edit':
             content, status = edit_modal(request, target, target_obj)
         elif op == 'delete':
             content, status = delete_modal(request, target, target_obj)
+
     safe = False if status != 200 else True
     return JsonResponse(data=content, safe=safe, status=status)
 
@@ -260,6 +265,16 @@ def get_modal(request, op=None):
 #   if more than one category, present an error to be more specific and tailor it to one classification.
 
 def add_modal(request, target):
+    """
+    ADMIN INTERFACE
+
+    This function is used to interact with a modal for adding an instance of the desired target. On the first call,
+    the HTML for the modal will be returned. Once that is submitted, we will try to save the data submitted (via POST)
+
+    :param request: HTTP request object containing request metadata.
+    :param target: Model target that we are creating an instance for
+    :return:
+    """
     formset = MODAL_MODEL_FORMS[target]
     if request.POST.get('loaded', None) is not None:
         # we have already been here once, validate and try to save the form
@@ -296,11 +311,23 @@ def add_modal(request, target):
 # todo do we need to be able to specify the action for jquery to perform when modal is closed?
 
 def edit_modal(request, target, edit_target):
+    """
+    ADMIN INTERFACE
+
+    This function is used to interact with a modal for editing an instance of the desired target. On the first call,
+    the HTML for the modal will be returned. Once that is submitted, we will try to save the data submitted (via POST)
+
+    :param request: HTTP request object containing request metadata.
+    :param target: Model target that we are editing
+    :param edit_target: instantiation of the target that we are editing
+    :return:
+    """
+    print(edit_target.pk)
     # Determine what formset we are trying to show
     formset = MODAL_MODEL_FORMS[target]
     if request.POST.get('loaded', None) is not None:
         # we have already been here once, validate and try to save the form
-        loaded = formset(request.POST)
+        loaded = formset(request.POST, instance=edit_target)
         if loaded.is_valid():
             loaded.save()
             return {}, 200
@@ -313,7 +340,7 @@ def edit_modal(request, target, edit_target):
         'select_check': '',
         'success_color': 'success',
         'cancel_color': 'danger',
-        'id': edit_target.pk
+        'id': 'pk-{}'.format(edit_target.pk)
     }
     context.update(MODAL_OPTIONS[target])
     operation_target = 'edit{}'.format(target.capitalize())
@@ -327,10 +354,21 @@ def edit_modal(request, target, edit_target):
 
 
 def delete_modal(request, target, edit_target):
+    """
+    ADMIN INTERFACE
+
+    This function is used to interact with a modal for deleting an instance of the desired target. On the first call,
+    the HTML for the modal will be returned. Once that is submitted, we will try to delete the instance (via POST)
+
+    :param request: HTTP request object containing request metadata.
+    :param target: Model target that we are deleting
+    :param edit_target: Instantiation of the target that we are deleting
+    :return:
+    """
     form = MODAL_MODEL_FORMS[target]
     if request.POST.get('loaded', None) is not None:
         # we have already been here once, validate and try to delete the object
-        loaded = form(request.POST)
+        loaded = form(request.POST, instance=edit_target)
         # todo ensure that this properly protects against deleting 'ALL'
         if loaded.is_valid():
             edit_target.delete()
@@ -347,7 +385,7 @@ def delete_modal(request, target, edit_target):
         'select_check': '',
         'success_color': 'success',
         'cancel_color': 'danger',
-        'id': edit_target.pk
+        'id': 'pk-{}'.format(edit_target.pk)
     }
     operation_target = 'delete{}'.format(target.capitalize())
     response = {
@@ -391,6 +429,7 @@ def generate_edit_project_view(request, project):
     return render(request, 'designsec/admin/project.html', context)
 
 
+# todo change the behavior of list when a delete fires on the admin list - can we remember the last sorting view?
 def list_projects(request):
     """
     ADMIN INTERFACE

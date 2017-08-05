@@ -137,7 +137,7 @@ function callModalAjax(formId) {
             if (c !== null) {
                 console.log(c);
                 console.log($(this).attr('id'));
-                $(this).html(c).getContent();
+                $(this).html(c.getContent());
             }
         });
         clearFormErrors(frm);

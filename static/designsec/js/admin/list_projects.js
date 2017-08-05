@@ -32,8 +32,7 @@ $(document).ready(function () {
         trigger : 'hover'
     });
     // enable modals
-    $('.add-project').on('click', getModal());
-    $('.delete-project').on('click', getModal());;
+    $('.modal-operation').on('click', getModal());
     // Convert the adminTable to a DataTable object
     var table = $('#adminTable').DataTable({
         paging: true,

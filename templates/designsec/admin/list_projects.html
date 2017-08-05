@@ -53,7 +53,7 @@
                     <td class="min-td-width" data-order="{{ p.pid }}" data-search="{{ p.pid }}">
                         <a href="{% url 'project' project=p.pid %}" class="btn btn-primary">View</a>
                         <a href="{% url 'edit_project' project=p.pid %}" class="btn btn-warning">Edit</a>
-                        <a href="#" class="btn btn-danger delete-project" id="delete-{{ p.pk }}" data-target="project" data-id="{{ p.pk }}" data-modal-operation="delete">Delete</a></td>
+                        <a href="#" class="btn btn-danger modal-operation" id="delete-{{ p.pk }}" data-target="project" data-id="{{ p.pk }}" data-modal-operation="delete">Delete</a></td>
                     <td class="max-td-width"><p class="text-capitalize">{{ p.name }}</p></td>
                     <td data-order="{{ p.added|date:'U' }}"><p>{{ p.added }}</p></td>
                     <td data-order="{{ p.modified|date:'U' }}"><p>{{ p.modified }}</p></td>
@@ -64,12 +64,10 @@
             {% endfor %}
             </tbody>
         </table>
-    <a href="#" class="btn btn-primary add-project" data-target="project" data-id="{{ p.pk }}" data-modal-operation="add">Add Project</a>
+    <a href="#" class="btn btn-primary modal-operation" data-target="project" data-id="{{ p.pk }}" data-modal-operation="add">Add Project</a>
     </div>
 </div>
-<!-- Create Project Modal -->
-
-<!-- Delete Project Modal -->
+<!-- Modal operation forms -->
 <form id="addModalMaker" action="{% url 'get_modal' op='add' %}" method="post">
     {% csrf_token %}
     <input type="hidden" name="target" value="">
@@ -85,5 +83,6 @@
     <input type="hidden" name="target" value="">
     <input type="hidden" name="id" value="">
 </form>
+<!-- Modal code will be appended to the body -->
 </body>
 </html>

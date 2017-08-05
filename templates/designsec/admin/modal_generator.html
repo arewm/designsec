@@ -1,6 +1,3 @@
-{# operation, target, formset, select_check, success_color, cancel_color, [id] #}
-{# jquery: .find(`[data-operation='submit/reset']`) #}
-
 <div id="{{ operation }}{{ target|capfirst }}Modal" class="modal fade " role="dialog" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -29,10 +26,12 @@
                 </form>
             </div>
             <div class="modal-footer">
-                <button id="{{ operation }}{{ target|capfirst }}Button"  type="button" class="btn btn-{{ success_color }}" data-operation="submit">{{ operation|capfirst }}</button>
+                <button id="{{ operation }}{{ target|capfirst }}Button"  type="button" class="btn btn-{{ success_color }}" data-operation="submit">Submit {{ operation|capfirst }}</button>
                 <button type="button" class="btn btn-{{ cancel_color }}" data-dismiss="modal" >Cancel</button>
                 {% if operation != 'delete' %}<button id="reset{{ operation|capfirst }}{{ target|capfirst }}FormButton" type="button" class="btn btn-outline-secondary" data-option="reset">Reset</button>{% endif %}
             </div>
         </div>
     </div>
 </div>
+{# operation, target, formset, select_check, success_color, cancel_color, [id] #}
+{# jquery: .find(`[data-operation='submit/reset']`) #}
