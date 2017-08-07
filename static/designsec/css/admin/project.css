@@ -42,7 +42,7 @@ body {
     margin-left: 5px;
 }
 
-.panel-title > a {
+.panel-title > a .expand-toggle{
     display: block;
     /*padding: 15px;*/
     text-decoration: none;
@@ -56,13 +56,15 @@ body {
 .panel-heading .expand-toggle:after {
     /* symbol for "expanded" divs */
     font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
-    content: "\2212";    /* minus, taken from bootstrap.css */
+    /*content: "\2212";    !* minus, taken from bootstrap.css *!*/
+    content: "\e114";       /*c hevron down, taken from bootstrap.css */
     float: right;
     color: grey;
 }
 .panel-heading .expand-toggle.collapsed:after {
     /* symbol for "collapsed" divs */
-    content: "\2b";    /* plus, taken from bootstrap.css */
+    /*content: "\2b";    !* plus, taken from bootstrap.css *!*/
+    content: "\e080"; /*chevron right, taken from bootstrap.css */
 }
 
 #adminTable_wrapper {

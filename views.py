@@ -85,9 +85,7 @@ def get_recommendation_by_category(cat=None, p_uid=None):
     except Http404:
         # If we do not have a valid category, just get the first one defined.
         cat_obj = get_object_or_404(Category, name='All')
-    # If we do not have a valid category, just get the first one defined.
-    # if not cat_obj or cat_obj is None:
-    #    cat_obj = Category.objects.all()[0]
+
     # Get the defined classifications for the desired category
     for c in cat_obj.classification_set.order_by('name'):
         rec_dict[c.name] = (c, [])
@@ -98,7 +96,7 @@ def get_recommendation_by_category(cat=None, p_uid=None):
         # if the recommendation exists in the desired category, save it with the classification
         for c in classes:
             rec_dict[c.name][1].append((l, Category.objects.filter(classification__recommendation=l).order_by('name')))
-    # remove any entries that have no values
+    # remove any classifications that have no recommendations
     # and convert the rest from a dictionary
     classification_list = []
     popper = []
@@ -164,7 +162,6 @@ def generate_recommendation_by_category(request, project=None, category=None):
     url = url.replace('%3F', '?', 1)
     context = {
         'rec_list': recommendations,
-        'category': cat_obj,
         'pid': project,
         'permalink': url
     }
@@ -200,21 +197,6 @@ def generate_project_view(request, project=None, category=None):
         'pid': project
     }
     return render(request, 'designsec/project.html', context)
-
-
-# todo create a helper function similar to get_recommendation_by_category for the default view (?)
-#       this might just be done with html
-
-# def get_admin_recommendation_by_category(cat=None, p_uid=None):
-#     """
-#     Get a list of recommendations based on the desired category for a project
-#     :param cat: The id of the recommendation category to sort based on. If none provided, we they will be presented in
-#                 the 'All' category.
-#     :param p_uid: The project uuid that we are getting the recommendations from. If none provided, we will get
-#                   all recommendations.
-#     :return
-#     """
-#     pass
 
 
 # todo ensure that user is properly authenticated before edits happen!
@@ -322,7 +304,6 @@ def edit_modal(request, target, edit_target):
     :param edit_target: instantiation of the target that we are editing
     :return:
     """
-    print(edit_target.pk)
     # Determine what formset we are trying to show
     formset = MODAL_MODEL_FORMS[target]
     if request.POST.get('loaded', None) is not None:
@@ -396,8 +377,43 @@ def delete_modal(request, target, edit_target):
     }
     return response, 200
 
+
+def get_admin_recommendation_by_category(cat=None, p_uid=None):
+    """
+
+    :param cat: The id of the recommendation category to sort based on. If none provided, we they will be presented in
+                the 'All' category.
+    :param p_uid: The project uuid that we are getting the recommendations from. If none provided, we will get
+                  all recommendations.
+    :return
+    """
+    # todo complete documentation
+    p = get_object_or_404(Project, pid=uuid.UUID(p_uid))
+    project_recommendations = p.recommendation.all()
+
+    # get the category that we are trying to display
+    try:
+        cat_obj = get_object_or_404(Category, id=cat)
+    except Http404:
+        # If we do not have a valid category, just get the first one defined.
+        cat_obj = get_object_or_404(Category, name='All')
+
+    classification_list = []
+    # go through all of the classifications for the category and determine if contained recommendations are applied
+    # to the current project
+    for c in cat_obj.classification_set.order_by('name'):
+        rec_list = []
+        for r in Recommendation.objects.filter(classification=c).order_by('name'):
+            rec_list.append((r, 'checked' if r in project_recommendations else ''))
+        classification_list.append((c, rec_list))
+
+    return classification_list, cat_obj
+
+
 def generate_admin_recommendation_by_category(request, project=None, category=None):
     """
+    ADMIN INTERFACE
+
     Sort the recommendations for a project based on the passed POST parameters
     :param request: HTTP request object containing request metadata
     :param project: The pid that we are looking up (as a hex)
@@ -407,7 +423,8 @@ def generate_admin_recommendation_by_category(request, project=None, category=No
     if category is None:
         category = request.GET.get('category', None)
 
-    recommendations, cat_obj = get_recommendation_by_category(cat=category, p_uid=project)
+    recommendations, cat_obj = get_admin_recommendation_by_category(cat=category, p_uid=project)
+
     try:
         url = request.build_absolute_uri(reverse('project_category', kwargs={'project': project, 'category': cat_obj.pk}))
     except NoReverseMatch:
@@ -424,6 +441,27 @@ def generate_admin_recommendation_by_category(request, project=None, category=No
     return render(request, 'designsec/admin/project_recommendations.html', context)
 
 
+def save_recommendations(request, project=None):
+    """
+    ADMIN INTERFACE
+
+    :param request:
+    :param project:
+    :return:
+    """
+    # todo complete documentation
+
+    if request.method != "POST":
+        return HttpResponseNotAllowed(permitted_methods=['POST'])
+    p = get_object_or_404(Project, pid=uuid.UUID(project))
+    p.recommendation.clear()
+
+    p.recommendation.add(*[r for r in Recommendation.objects.filter(pk__in=request.POST.getlist('recommendation', []))])
+
+    messages.add_message(request, messages.SUCCESS, 'recommendations updated for project {}'.format(p.pid.hex))
+    return generate_admin_recommendation_by_category(request, project, request.POST.get('category'))
+
+
 def generate_admin_project_view(request, project):
     """
     ADMIN INTERFACE
@@ -432,7 +470,7 @@ def generate_admin_project_view(request, project):
     :param project: Hex representation of target project's UUID
     :return:
     """
-    # todo complete this, change from main.html
+    # todo complete this
     # todo when modifying a project, make sure that changes are applied before switching categories
     #       keep when switching categories, submit list of selected and non-selected recommendations displayed
     # todo for each category, make a modal to create a new recommendation
@@ -448,7 +486,7 @@ def generate_admin_project_view(request, project):
 
     context = {
         'project': p,
-        'category': Category.objects.filter(classification__recommendation__project=p).distinct(),
+        'category': Category.objects.distinct(),
         'rec_list': get_recommendation_by_category(p_uid=project),
         'pid': project
     }

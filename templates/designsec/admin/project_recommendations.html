@@ -1,7 +1,19 @@
+{% if messages %}
+    {% autoescape off %}
+        {% for message in messages %}
+            <div id="site-notice" class="alert {% if message.tags %} {{ message.tags }} {% else %} alert-warning {% endif %}">{{ message }}</div>
+        {% endfor %}
+    {% endautoescape %}
+{% endif %}
+<button class="save-recommendations btn btn-success">Save project recommendations</button>
 <h3><a href="#" role="button" class="modal-operation" data-target="category" data-modal-operation="edit" data-id="{{ category.pk }}" data-toggle="tooltip" title="Edit this category"><span class="glyphicon glyphicon-pencil glyph-border"></span></a>{{ category.name }}</h3>
 <h4>{{ category.help }}</h4>
 <a href="#" role="button" class="modal-operation" data-target="classification" data-modal-operation="add" data-toggle="tooltip" title="Add a new classification"><span class="glyphicon glyphicon-plus"></span></a>
-{% for _, classification, recommendations in rec_list %}
+
+<form id="saveProjectRecommendations" action="{% url 'save_recommendations' project=pid %}" method="post">
+    {% csrf_token %}
+<input type="hidden" name="category" value="{{ category.pk }}">
+{% for classification, recommendations in rec_list %}
     <div class="panel panel-info">
         <div class="panel-heading">
 
@@ -17,14 +29,16 @@
                 {{ classification.description }}
             </div>
             <div class="panel-body">
-                {% for r, cl in recommendations %}
+                {% for r, checked in recommendations %}
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title" style="display: block;">
+                            <input type="checkbox" name="recommendation" value="{{ r.pk }}" {{ checked }}>
                             <a href="#" role="button" class="modal-operation" data-target="recommendation" data-modal-operation="edit" data-id="{{ r.pk }}" data-toggle="tooltip" title="Edit this recommendation"><span class="glyphicon glyphicon-pencil glyph-border"></span></a>
                             <a class="expand-toggle" role="button" data-toggle="collapse" href="#colR{{ r.id }}">
                                 {{ r.name }}
                             </a>
+
                             </h4>
                             {#                        <span class="labels">#}
                             {#                        {% for c in cl %}#}
@@ -43,5 +57,7 @@
         </div>
     </div>
 {% endfor %}
+</form>
+<button class="save-recommendations btn btn-success">Save project recommendations</button>
 <div id="permalink"><a href="{{ permalink|safe }}">permalink</a></div>
 

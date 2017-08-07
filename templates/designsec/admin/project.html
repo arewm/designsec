@@ -9,23 +9,11 @@
     <script src="/static/designsec/js/tinymce/tinymce.min.js"></script>
     <script src="/static/designsec/js/projects.js"></script>
     <script src="/static/designsec/js/admin/modal_generator.js"></script>
+    <script src="/static/designsec/js/admin/projects.js"></script>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-    <link rel="stylesheet" href="/static/designsec/css/project.css">
-
-    <script type="text/javascript">
-        $(document).ready(function () {
-            // enable modals
-            var modalContainer = $('#modalContainer');
-            $('.modal-operation').on('click', getModal(modalContainer));
-            $(document).on('click', '.category-sort', registerSortOnCategory(function(recommendation) {
-                recommendation.find('.modal-operation').each(function() {
-                    $(this).on('click', getModal(modalContainer));
-                })
-            }));
-        })
-    </script>
+    <link rel="stylesheet" href="/static/designsec/css/admin/project.css">
 </head>
 <body>
 <div id="content">
@@ -80,9 +68,16 @@
 
 
 {#        <div id="recommendations" class="panel-group" role="tablist" aria-multiselectable="true">#}
-        <div id="recommendations" class="panel-group">
-            <form id="list-maker" action="{% url 'admin_project_sort' project=pid %}"></form>
-        </div>
+{#        <form action="{% url 'save_recommendations' project=pid %}" method="POST">#}
+{#            {% csrf_token %}#}
+            <div id="recommendations" class="panel-group">
+                <form id="list-maker" action="{% url 'admin_project_sort' project=pid %}" method="post">
+                    {% csrf_token %}
+                </form>
+            </div>
+{#        </form>#}
+
+{#    <button class="submit-recommendations btn btn-success">Save project recommendations</button>#}
     </div>
 </div>
 

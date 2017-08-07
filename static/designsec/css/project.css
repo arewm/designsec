@@ -24,6 +24,7 @@ body {
     background-color: #ffffff;
     padding:5px;
     margin-top: 5px;
+    overflow: scroll;
 }
 
 .half-top {
@@ -41,7 +42,7 @@ body {
     margin-left: 5px;
 }
 
-.panel-title > a .expand-toggle{
+.panel-title > a {
     display: block;
     /*padding: 15px;*/
     text-decoration: none;
