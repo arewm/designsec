@@ -21,17 +21,6 @@ class CategoryModelForm(MakeReadOnlyModelForm):
             'help': _('Slightly longer description of category; no HTML')
         }
 
-    def is_valid(self):
-        valid = super(CategoryModelForm, self).is_valid()
-        if not valid:
-            return valid
-
-        # Check to make sure that we are not the 'All' category
-        if self.cleaned_data['name'] == 'All' and self.cleaned_data.get('DELETE', False):
-            self.add_error('name', {'message': 'You cannot delete the \'All\' category.'})
-            return False
-        return True
-
 
 class ClassificationModelForm(MakeReadOnlyModelForm):
     class Meta:
@@ -44,21 +33,6 @@ class ClassificationModelForm(MakeReadOnlyModelForm):
             'category': _('Category to which this is a sub-classification of')
         }
 
-    def is_valid(self):
-        valid = super(ClassificationModelForm, self).is_valid()
-        if not valid:
-            return valid
-
-        # Check to make sure that we are not deleting the last 'All' classification
-        if Category.objects.filter(name='All').count() == 1 and \
-                Classification.objects.filter(id=self.cleaned_data['id'])[0].category.name == 'All' and \
-                self.cleaned_data['category'].name == 'All' and \
-                self.cleaned_data.get('DELETE', False):
-            self.add_error('classification', {'message': 'This change will remove the last classification from the '
-                                                         '\'All\' category. This operation is forbidden.'})
-            return False
-        return True
-
 
 class RecommendationModelForm(MakeReadOnlyModelForm):
     class Meta:
@@ -70,6 +44,17 @@ class RecommendationModelForm(MakeReadOnlyModelForm):
                              'Can include examples, rational, and dangers'),
             'classification': _('Classification(s) to which this recommendation can be categorized')
         }
+
+    def is_valid(self):
+        valid = super(RecommendationModelForm, self).is_valid()
+        if not valid:
+            return valid
+
+        # check to see if we have the 'All' category/classification
+        classifications = self.cleaned_data.get('classification')
+        if Classification.get_universal_classification_queryset()[0] not in classifications:
+            self.cleaned_data['classification'] |= Classification.get_universal_classification_queryset()
+        return True
 
 
 class ContactModelForm(MakeReadOnlyModelForm):

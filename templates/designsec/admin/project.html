@@ -31,6 +31,8 @@
             <h1 class="text-capitalize">
                 <a href="#" role="button" class="modal-operation" data-target="project" data-id="{{ project.pk }}" data-modal-operation="edit" data-toggle="tooltip" data-placement="right" title="Edit the project title, description, threat model, and contact">
                 <span class="glyphicon glyphicon-pencil glyph-border"></span>
+            </a><a href="#" role="button" class="modal-operation" data-target="project" data-id="{{ project.pk }}" data-modal-operation="delete" data-toggle="tooltip" data-placement="right" title="Delete the project title, description, threat model, and contact">
+                <span class="glyphicon glyphicon-trash glyph-border"></span>
             </a>{{ project.name }}</h1>
             <h3>Project description</h3>
             <blockquote id="project-description">

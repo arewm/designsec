@@ -6,9 +6,13 @@
     {% endautoescape %}
 {% endif %}
 <button class="save-recommendations btn btn-success">Save project recommendations</button>
-<h3><a href="#" role="button" class="modal-operation" data-target="category" data-modal-operation="edit" data-id="{{ category.pk }}" data-toggle="tooltip" title="Edit this category"><span class="glyphicon glyphicon-pencil glyph-border"></span></a>{{ category.name }}</h3>
+<h3>
+    <a href="#" role="button" class="modal-operation" data-target="category" data-modal-operation="edit" data-id="{{ category.pk }}" data-toggle="tooltip" title="Edit this category"><span class="glyphicon glyphicon-pencil glyph-border"></span></a>
+    <a href="#" role="button" class="modal-operation" data-target="category" data-modal-operation="delete" data-id="{{ category.pk }}" data-toggle="tooltip" title="Delete this category"><span class="glyphicon glyphicon-trash glyph-border"></span></a>
+    {{ category.name }}
+</h3>
 <h4>{{ category.help }}</h4>
-<a href="#" role="button" class="modal-operation" data-target="classification" data-modal-operation="add" data-toggle="tooltip" title="Add a new classification"><span class="glyphicon glyphicon-plus"></span></a>
+{#<a href="#" role="button" class="modal-operation" data-target="classification" data-modal-operation="add" data-toggle="tooltip" title="Add a new classification"><span class="glyphicon glyphicon-plus"></span></a>#}
 
 <form id="saveProjectRecommendations" action="{% url 'save_recommendations' project=pid %}" method="post">
     {% csrf_token %}
@@ -19,6 +23,7 @@
 
             <h4 class="panel-title" style="display: block">
                 <a href="#" role="button" class="modal-operation" data-target="classification" data-modal-operation="edit" data-id="{{ classification.pk }}" data-toggle="tooltip" title="Edit this classification"><span class="glyphicon glyphicon-pencil glyph-border"></span></a>
+                <a href="#" role="button" class="modal-operation" data-target="classification" data-modal-operation="delete" data-id="{{ classification.pk }}" data-toggle="tooltip" title="Delete this classification"><span class="glyphicon glyphicon-trash glyph-border"></span></a>
             <a class="expand-toggle" role="button" data-toggle="collapse" href="#colC{{ classification.id }}">
 
                 {{ classification.name }}
@@ -26,7 +31,7 @@
         </div>
         <div id="colC{{ classification.id }}" class="collapse in" aria-expanded="true">
             <div class="panel-body">
-                {{ classification.description }}
+                {{ classification.description|safe }}
             </div>
             <div class="panel-body">
                 {% for r, checked in recommendations %}
@@ -35,6 +40,7 @@
                             <h4 class="panel-title" style="display: block;">
                             <input type="checkbox" name="recommendation" value="{{ r.pk }}" {{ checked }}>
                             <a href="#" role="button" class="modal-operation" data-target="recommendation" data-modal-operation="edit" data-id="{{ r.pk }}" data-toggle="tooltip" title="Edit this recommendation"><span class="glyphicon glyphicon-pencil glyph-border"></span></a>
+                            <a href="#" role="button" class="modal-operation" data-target="recommendation" data-modal-operation="delete" data-id="{{ r.pk }}" data-toggle="tooltip" title="Delete this recommendation"><span class="glyphicon glyphicon-trash glyph-border"></span></a>
                             <a class="expand-toggle" role="button" data-toggle="collapse" href="#colR{{ r.id }}">
                                 {{ r.name }}
                             </a>
@@ -48,7 +54,7 @@
                         </div>
                         <div id="colR{{ r.id }}" class="collapse in" aria-expanded="true">
                             <div class="panel-body">
-                                {{ r.description }}
+                                {{ r.description|safe }}
                             </div>
                         </div>
                     </div>

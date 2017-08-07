@@ -257,6 +257,8 @@ def add_modal(request, target):
     :param target: Model target that we are creating an instance for
     :return:
     """
+    # todo figure out how to pre-fill modal data with necessary information (i.e. parent from current context)
+    # todo fix the display of information in lists (i.e. string representation in multi-select box)
     formset = MODAL_MODEL_FORMS[target]
     if request.POST.get('loaded', None) is not None:
         # we have already been here once, validate and try to save the form
@@ -264,9 +266,8 @@ def add_modal(request, target):
         if loaded.is_valid():
             # todo when adding a recommendation, make sure to add it to the 'All' category!
             p = loaded.save()
-            messages.add_message(request, messages.SUCCESS, '{} created with id {}'.format(target.capitalize(),
-                                                                                           p.pid.hex))
-            return {'message': '{} created with id {}'.format(target.capitalize(), p.pid.hex)}, 200
+            # todo are we handling this message everywhere we need to? I am thinking about when editing projects
+            return {'message': '{} created with id {}'.format(target.capitalize(), p.pk)}, 200
 
         else:
             return loaded.errors.as_json(), 400
@@ -352,6 +353,10 @@ def delete_modal(request, target, edit_target):
         loaded = form(request.POST, instance=edit_target)
         # todo ensure that this properly protects against deleting 'ALL'
         if loaded.is_valid():
+            deletable, message = edit_target.can_delete()
+            if not deletable:
+                loaded.add_error(*message)
+                return loaded.errors.as_json(), 400
             edit_target.delete()
             return {}, 200
         return loaded.errors.as_json(), 400
@@ -420,6 +425,7 @@ def generate_admin_recommendation_by_category(request, project=None, category=No
     :return: The rendered webpage
     """
     # todo complete this
+    # todo when making a selection, check to see if there is another instance present
     if category is None:
         category = request.GET.get('category', None)
 

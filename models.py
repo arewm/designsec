@@ -65,6 +65,32 @@ class Category(models.Model):
             self.name = self.name.lower().capitalize()
         super(Category, self).save(*args, **kwargs)
 
+    def can_delete(self):
+        """
+        Determine whether the current model can be deleted
+
+        :return: boolean; reason why we cannot delete
+        """
+        if self.name == 'All':
+            return False, ('name', 'You cannot delete the \'All\' category.')
+        return True, ''
+
+    def delete(self, *args, **kwargs):
+        """
+        Override to only delete if the object is deletable
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        deletable, _ = self.can_delete()
+        if deletable:
+            return super(Category, self).delete(*args, **kwargs)
+
+    @staticmethod
+    def get_universal_category():
+        return Category.objects.filter(name='All')[0]
+
     def __str__(self):
         return '{}'.format(self.name)
 
@@ -80,6 +106,9 @@ class Classification(models.Model):
     description = models.TextField(default=None)
     category = models.ForeignKey(Category, on_delete=models.CASCADE, default=None)
 
+    class Meta:
+        unique_together = ('name', 'category')
+
     def save(self, *args, **kwargs):
         """
         Override save method to make only the first letter of the name capital; ensure that html is properly cleaned
@@ -88,7 +117,44 @@ class Classification(models.Model):
             self.name = self.name.lower().capitalize()
         if self.description:
             self.description = clean(self.description)
-        super(Classification, self).save(*args, **kwargs)
+        # make sure that there is only ever one classification within the 'All' category
+        all_category = Category.get_universal_category()
+        if self.category == all_category:
+            if self.name == 'All':
+                super(Classification, self).save(*args, **kwargs)
+        else:
+            super(Classification, self).save(*args, **kwargs)
+
+    def can_delete(self):
+        """
+        Determine whether the current model can be deleted
+
+        :return: boolean; reason why we cannot delete
+        """
+        # self.cleaned_data.get('DELETE', False) and Category.objects.filter(name='Test').count() == 1 and \
+        # Classification.objects.filter(pk=self.cleaned_data['pk'])[0].category.name == 'Test' and \
+        # self.cleaned_data['category'].name == 'Test':
+        if Category.objects.filter(name='All').count() == 1 and \
+            Classification.objects.filter(pk=self.pk)[0].category.name == 'All':
+            return False, ('name','This change will remove the last classification from the \'All\' category. This '
+                                  'operation is forbidden.')
+        return True, ''
+
+    def delete(self, *args, **kwargs):
+        """
+        Override to only delete if the object is deletable
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        deletable, _ = self.can_delete()
+        if deletable:
+            return super(Classification, self).delete(*args, **kwargs)
+
+    @staticmethod
+    def get_universal_classification_queryset():
+        return Classification.objects.filter(category=Category.get_universal_category())
 
     def __str__(self):
         return '{}: {}'.format(str(self.category), self.name)
@@ -98,6 +164,9 @@ class Recommendation(models.Model):
     """
     A single recommendation and the classifications to which it belongs. Classifications should be specific enough
     such that it only belongs to one classification per category.
+
+    ..note: The 'ALL' classification/category should always be added. We have ensured this using RecommendationModelForm,
+            but be careful if playing around with the objects directly!
     """
     name = models.CharField(max_length=100)
     description = models.TextField(default=None)
@@ -111,8 +180,27 @@ class Recommendation(models.Model):
             self.name = self.name.lower().capitalize()
         if self.description:
             self.description = clean(self.description)
-        # todo ensure that there is always a classification within 'All' category
         super(Recommendation, self).save(*args, **kwargs)
+
+    def can_delete(self):
+        """
+        Determine whether the current model can be deleted
+
+        :return: boolean; reason why we cannot delete
+        """
+        return True, ''
+
+    def delete(self, *args, **kwargs):
+        """
+        Override to only delete if the object is deletable
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        deletable, _ = self.can_delete()
+        if deletable:
+            return super(Recommendation, self).delete(*args, **kwargs)
 
     def __str__(self):
         return '{}'.format(self.name)
@@ -130,6 +218,26 @@ class Contact(models.Model):
             return '<a href="mailto:{}">{}</a>'.format(self.email, self.name)
         else:
             return '<a href="mailto:{}?Subject={}">{}</a>'.format(self.email, quote(subject), self.name)
+
+    def can_delete(self):
+        """
+        Determine whether the current model can be deleted
+
+        :return: boolean; reason why we cannot delete
+        """
+        return True, ''
+
+    def delete(self, *args, **kwargs):
+        """
+        Override to only delete if the object is deletable
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        deletable, _ = self.can_delete()
+        if deletable:
+            return super(Contact, self).delete(*args, **kwargs)
 
     def __str__(self):
         return '{} <{}>'.format(self.name, self.email)
@@ -159,6 +267,26 @@ class Project(models.Model):
         if self.trust:
             self.trust = clean(self.trust)
         super(Project, self).save(*args, **kwargs)
+
+    def can_delete(self):
+        """
+        Determine whether the current model can be deleted
+
+        :return: boolean; reason why we cannot delete
+        """
+        return True, ''
+
+    def delete(self, *args, **kwargs):
+        """
+        Override to only delete if the object is deletable
+
+        :param args:
+        :param kwargs:
+        :return:
+        """
+        deletable, _ = self.can_delete()
+        if deletable:
+            return super(Project, self).delete(*args, **kwargs)
 
     def __str__(self):
         return 'pid:{} name:{}'.format(self.pid, self.name)

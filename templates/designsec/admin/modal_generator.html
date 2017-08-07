@@ -24,11 +24,12 @@
                         {% endif %}
                     {% endfor %}
                 </form>
+            {% if operation != 'add' %}<div class="alert {% if operation == 'delete' %}alert-danger{% else %}alert-warning{% endif %}">The {{ operation }} operation will occur for all instances that reference this {{ target }}.</div>{% endif %}
             </div>
             <div class="modal-footer">
                 <button id="{{ operation }}{{ target|capfirst }}Button"  type="button" class="btn btn-{{ success_color }}" data-operation="submit">Submit {{ operation|capfirst }}</button>
                 <button type="button" class="btn btn-{{ cancel_color }}" data-dismiss="modal" >Cancel</button>
-                {% if operation != 'delete' %}<button id="reset{{ operation|capfirst }}{{ target|capfirst }}FormButton" type="button" class="btn btn-outline-secondary" data-option="reset">Reset</button>{% endif %}
+                {% if operation == 'add' %}<button id="reset{{ operation|capfirst }}{{ target|capfirst }}FormButton" type="button" class="btn btn-outline-secondary" data-option="reset">Reset</button>{% endif %}
             </div>
         </div>
     </div>
