@@ -14,18 +14,21 @@ var getUrlParameter = function getUrlParameter(sParam) {
         }
     }
 };
-function registerSortOnCategory(onLoadAction) {
+function registerSortOnCategory(onLoadAction, beforeSubmitAction) {
     if (!onLoadAction){
         onLoadAction = function(){}
+    }
+    if (!beforeSubmitAction) {
+        beforeSubmitAction = function(){return true}
     }
 
     var listLoader = $('#list-maker');
     var category = getUrlParameter('category');
-    var categorySorters = $('#category-sorters');
+    var categorySorters = $('#category-sorter-parent');
     var recommendations = $('#recommendations');
     var categorySelection = categorySorters.children().first();
     if (category) {
-        categorySelection = categorySorters.find('#category-'+category);
+        categorySelection = categorySorters.find('[data-pk='+category+']');
     }
     $.ajax({
         type: listLoader.attr('method'),
@@ -47,28 +50,30 @@ function registerSortOnCategory(onLoadAction) {
 
     return function () {
         var selection = $(this);
-        //var cat = selection.text();
-        var cat = selection.attr('id').split('-')[1];
-        var frm = $(document).find('#category-selector');
-        $("#category-sort").attr("value", cat);
-        $.ajax({
-            type: frm.attr('method'),
-            url: frm.attr('action'),
-            data: frm.serialize(),
-            success: function (data) {
-                recommendations.html(data);
-                recommendations.find('[data-toggle="tooltip"]').tooltip({
-                    trigger : 'hover'
-                });
-                onLoadAction(recommendations);
-                categorySorters.find('li.active').removeClass('active');
-                selection.addClass('active');
-            },
-            error: function (data) {
-                $('#errorModalText').html(modalError);
-                $('#errorModal').modal('show');
-            }
-        });
+        if (beforeSubmitAction(selection, categorySorters, recommendations)) {
+            //var cat = selection.text();
+            var cat = selection.attr('data-pk');
+            var frm = $(document).find('#category-selector');
+            $("#category-sort").attr("value", cat);
+            $.ajax({
+                type: frm.attr('method'),
+                url: frm.attr('action'),
+                data: frm.serialize(),
+                success: function (data) {
+                    recommendations.html(data);
+                    recommendations.find('[data-toggle="tooltip"]').tooltip({
+                        trigger: 'hover'
+                    });
+                    onLoadAction(recommendations);
+                    categorySorters.find('li.active').removeClass('active');
+                    selection.addClass('active');
+                },
+                error: function (data) {
+                    $('#errorModalText').html(modalError);
+                    $('#errorModal').modal('show');
+                }
+            });
+        }
     }
 }
 $(document).ready(function () {

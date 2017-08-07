@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="/static/designsec/css/project.css">
     <script type="text/javascript">
         $(document).ready( function () {
-        $(document).on('click', '.category-sort', registerSortOnCategory());
+            $(document).on('click', '.category-sorters', registerSortOnCategory());
         })
     </script>
 </head>
@@ -52,9 +52,9 @@
 
     <div id="main-wrapper">
         Filter recommendations by:
-        <ul id="category-sorters" class="nav nav-tabs">
+        <ul id="category-sorter-parent" class="nav nav-tabs">
             {% for c in category %}
-                <li class="category-sort" id="category-{{ c.id }}" data-toggle="tooltip" title="{{ c.help }}">
+                <li class="category-sorters" data-pk="{{ c.pk }}" data-toggle="tooltip" title="{{ c.help }}">
                     <a href="#">{{ c.name }}</a></li>
             {% endfor %}
         </ul>

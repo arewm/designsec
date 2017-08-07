@@ -426,9 +426,9 @@ def generate_admin_recommendation_by_category(request, project=None, category=No
     recommendations, cat_obj = get_admin_recommendation_by_category(cat=category, p_uid=project)
 
     try:
-        url = request.build_absolute_uri(reverse('project_category', kwargs={'project': project, 'category': cat_obj.pk}))
+        url = request.build_absolute_uri(reverse('admin_project_category', kwargs={'project': project, 'category': cat_obj.pk}))
     except NoReverseMatch:
-        url = request.build_absolute_uri(reverse('default_category', kwargs={'category': cat_obj.pk}))
+        url = request.build_absolute_uri(reverse('admin_project', kwargs={'category': cat_obj.pk}))
     # the url generation is a bit of a hack. It escapes the question mark, so we need to change it back
     # to permalink the get parameter
     url = url.replace('%3F', '?', 1)
@@ -454,11 +454,15 @@ def save_recommendations(request, project=None):
     if request.method != "POST":
         return HttpResponseNotAllowed(permitted_methods=['POST'])
     p = get_object_or_404(Project, pid=uuid.UUID(project))
-    p.recommendation.clear()
+    update_recommendations = [int(r) for r in request.POST.getlist('recommendation', [])]
+    change = set([r.pk for r in p.recommendation.all()]) != set(update_recommendations)
 
-    p.recommendation.add(*[r for r in Recommendation.objects.filter(pk__in=request.POST.getlist('recommendation', []))])
+    if change:
+        p.recommendation.clear()
 
-    messages.add_message(request, messages.SUCCESS, 'recommendations updated for project {}'.format(p.pid.hex))
+        p.recommendation.add(*[r for r in Recommendation.objects.filter(pk__in=update_recommendations)])
+
+        messages.add_message(request, messages.SUCCESS, 'recommendations updated for project {}'.format(p.pid.hex))
     return generate_admin_recommendation_by_category(request, project, request.POST.get('category'))
 
 
@@ -471,8 +475,6 @@ def generate_admin_project_view(request, project):
     :return:
     """
     # todo complete this
-    # todo when modifying a project, make sure that changes are applied before switching categories
-    #       keep when switching categories, submit list of selected and non-selected recommendations displayed
     # todo for each category, make a modal to create a new recommendation
     #       create modals with JS by passing category/classification that we belong to
     #       when a recommendation is successfully created, save the current selection in JS and apply on new list load

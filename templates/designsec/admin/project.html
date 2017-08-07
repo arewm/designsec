@@ -58,9 +58,9 @@
         <button type="button" class="btn btn-primary modal-operation" data-modal-operation="add" data-target="recommendation" data-toggle="tooltip" title="Add a new recommendation">Recommendation <span class="badge"><span class="glyphicon glyphicon-plus"></span></span></button>
     </div>
         Filter recommendations by:
-        <ul id="category-sorters" class="nav nav-tabs">
+        <ul id="category-sorter-parent" class="nav nav-tabs">
             {% for c in category %}
-                <li class="category-sort" id="category-{{ c.id }}" data-toggle="tooltip" title="{{ c.help }}">
+                <li class="category-sorters" data-pk="{{ c.pk }}" data-toggle="tooltip" title="{{ c.help }}">
                     <a href="#">{{ c.name }}</a>
                 </li>
             {% endfor %}
