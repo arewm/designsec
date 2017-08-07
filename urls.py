@@ -15,7 +15,9 @@ urlpatterns = [
     url(r'^projects/(?P<project>[0-9a-zA-Z]{32})/sort/?$',
         views.generate_recommendation_by_category, name='project_sort'),
     # admin interfaces
-    url(r'^admin/projects/(?P<project>[0-9a-zA-Z_\-]{32})/?$', views.generate_edit_project_view, name='edit_project'),
+    url(r'^admin/projects/(?P<project>[0-9a-zA-Z_\-]{32})/?$', views.generate_admin_project_view, name='admin_project'),
+    url(r'^admin/projects/(?P<project>[0-9a-zA-Z]{32})/sort/?$',
+        views.generate_admin_recommendation_by_category, name='admin_project_sort'),
     url(r'^admin/projects/?$', views.list_projects, name='list'),
     url(r'^admin/get-modal/(?P<op>(add|edit|delete))/?$', views.get_modal, name='get_modal'),
 ]

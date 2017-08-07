@@ -115,7 +115,7 @@ def get_recommendation_by_category(cat=None, p_uid=None):
     # sort the recommendations for each classification
     [r[2].sort(key=lambda x: x[0].name) for r in classification_list]
 
-    return classification_list, cat_obj.id
+    return classification_list, cat_obj
 
 
 def generate_default_view(request, category=None):
@@ -132,7 +132,7 @@ def generate_default_view(request, category=None):
         notice += '{} to begin a security review.'.format(knox.mailto('Security recommendation request'))
         messages.add_message(request, messages.WARNING, notice)
 
-    recommendations, _ = get_recommendation_by_category()
+    recommendations, cat_obj = get_recommendation_by_category()
     context = {
         'description': '',
         'trust': '',
@@ -154,21 +154,21 @@ def generate_recommendation_by_category(request, project=None, category=None):
     if category is None:
         category = request.GET.get('category', None)
 
-    recommendations, category = get_recommendation_by_category(cat=category, p_uid=project)
+    recommendations, cat_obj = get_recommendation_by_category(cat=category, p_uid=project)
     try:
-        url = request.build_absolute_uri(reverse('project_category', kwargs={'project': project, 'category': category}))
+        url = request.build_absolute_uri(reverse('project_category', kwargs={'project': project, 'category': cat_obj.pk}))
     except NoReverseMatch:
-        url = request.build_absolute_uri(reverse('default_category', kwargs={'category': category}))
+        url = request.build_absolute_uri(reverse('default_category', kwargs={'category': cat_obj.pk}))
     # the url generation is a bit of a hack. It escapes the question mark, so we need to change it back
     # to permalink the get parameter
     url = url.replace('%3F', '?', 1)
     context = {
         'rec_list': recommendations,
-        'category': category,
+        'category': cat_obj,
         'pid': project,
         'permalink': url
     }
-    return render(request, 'designsec/projects_recommendation.html', context)
+    return render(request, 'designsec/project_recommendations.html', context)
 
 
 def generate_project_view(request, project=None, category=None):
@@ -396,9 +396,35 @@ def delete_modal(request, target, edit_target):
     }
     return response, 200
 
+def generate_admin_recommendation_by_category(request, project=None, category=None):
+    """
+    Sort the recommendations for a project based on the passed POST parameters
+    :param request: HTTP request object containing request metadata
+    :param project: The pid that we are looking up (as a hex)
+    :return: The rendered webpage
+    """
+    # todo complete this
+    if category is None:
+        category = request.GET.get('category', None)
+
+    recommendations, cat_obj = get_recommendation_by_category(cat=category, p_uid=project)
+    try:
+        url = request.build_absolute_uri(reverse('project_category', kwargs={'project': project, 'category': cat_obj.pk}))
+    except NoReverseMatch:
+        url = request.build_absolute_uri(reverse('default_category', kwargs={'category': cat_obj.pk}))
+    # the url generation is a bit of a hack. It escapes the question mark, so we need to change it back
+    # to permalink the get parameter
+    url = url.replace('%3F', '?', 1)
+    context = {
+        'rec_list': recommendations,
+        'category': cat_obj,
+        'pid': project,
+        'permalink': url
+    }
+    return render(request, 'designsec/admin/project_recommendations.html', context)
 
 
-def generate_edit_project_view(request, project):
+def generate_admin_project_view(request, project):
     """
     ADMIN INTERFACE
 

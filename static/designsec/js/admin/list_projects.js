@@ -32,7 +32,8 @@ $(document).ready(function () {
         trigger : 'hover'
     });
     // enable modals
-    $('.modal-operation').on('click', getModal());
+    var modalContainer = $('#modalContainer');
+    $('.modal-operation').on('click', getModal(modalContainer));
     // Convert the adminTable to a DataTable object
     var table = $('#adminTable').DataTable({
         paging: true,

@@ -1,0 +1,47 @@
+<h3><a href="#" role="button" class="modal-operation" data-target="category" data-modal-operation="edit" data-id="{{ category.pk }}" data-toggle="tooltip" title="Edit this category"><span class="glyphicon glyphicon-pencil glyph-border"></span></a>{{ category.name }}</h3>
+<h4>{{ category.help }}</h4>
+<a href="#" role="button" class="modal-operation" data-target="classification" data-modal-operation="add" data-toggle="tooltip" title="Add a new classification"><span class="glyphicon glyphicon-plus"></span></a>
+{% for _, classification, recommendations in rec_list %}
+    <div class="panel panel-info">
+        <div class="panel-heading">
+
+            <h4 class="panel-title" style="display: block">
+                <a href="#" role="button" class="modal-operation" data-target="classification" data-modal-operation="edit" data-id="{{ classification.pk }}" data-toggle="tooltip" title="Edit this classification"><span class="glyphicon glyphicon-pencil glyph-border"></span></a>
+            <a class="expand-toggle" role="button" data-toggle="collapse" href="#colC{{ classification.id }}">
+
+                {{ classification.name }}
+            </a></h4>
+        </div>
+        <div id="colC{{ classification.id }}" class="collapse in" aria-expanded="true">
+            <div class="panel-body">
+                {{ classification.description }}
+            </div>
+            <div class="panel-body">
+                {% for r, cl in recommendations %}
+                    <div class="panel panel-default">
+                        <div class="panel-heading">
+                            <h4 class="panel-title" style="display: block;">
+                            <a href="#" role="button" class="modal-operation" data-target="recommendation" data-modal-operation="edit" data-id="{{ r.pk }}" data-toggle="tooltip" title="Edit this recommendation"><span class="glyphicon glyphicon-pencil glyph-border"></span></a>
+                            <a class="expand-toggle" role="button" data-toggle="collapse" href="#colR{{ r.id }}">
+                                {{ r.name }}
+                            </a>
+                            </h4>
+                            {#                        <span class="labels">#}
+                            {#                        {% for c in cl %}#}
+                            {#                            <span class="label label-default">{{ c.name }}</span>#}
+                            {#                        {% endfor %}#}
+                            {#                        </span>#}
+                        </div>
+                        <div id="colR{{ r.id }}" class="collapse in" aria-expanded="true">
+                            <div class="panel-body">
+                                {{ r.description }}
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endfor %}
+<div id="permalink"><a href="{{ permalink|safe }}">permalink</a></div>
+

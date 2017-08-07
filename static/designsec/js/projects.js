@@ -14,14 +14,15 @@ var getUrlParameter = function getUrlParameter(sParam) {
         }
     }
 };
-$(document).ready(function () {
-    // show tooltips
-    $('[data-toggle="tooltip"]').tooltip({
-        trigger : 'hover'
-}   );
+function registerSortOnCategory(onLoadAction) {
+    if (!onLoadAction){
+        onLoadAction = function(){}
+    }
+
     var listLoader = $('#list-maker');
     var category = getUrlParameter('category');
     var categorySorters = $('#category-sorters');
+    var recommendations = $('#recommendations');
     var categorySelection = categorySorters.children().first();
     if (category) {
         categorySelection = categorySorters.find('#category-'+category);
@@ -31,16 +32,20 @@ $(document).ready(function () {
         url: listLoader.attr('action'),
         data: listLoader.serialize(),
         success: function (data) {
-            $('#recommendations').html(data);
+            recommendations.html(data);
+            recommendations.find('[data-toggle="tooltip"]').tooltip({
+                trigger : 'hover'
+            });
+            onLoadAction(recommendations);
             categorySelection.addClass('active');
         },
-        error: function (data) {
+        error: function () {
             $('#errorModalText').html(modalError);
             $('#errorModal').modal('show');
         }
     });
 
-    $(document).on('click', '.category-sort', function () {
+    return function () {
         var selection = $(this);
         //var cat = selection.text();
         var cat = selection.attr('id').split('-')[1];
@@ -51,7 +56,11 @@ $(document).ready(function () {
             url: frm.attr('action'),
             data: frm.serialize(),
             success: function (data) {
-                $('#recommendations').html(data);
+                recommendations.html(data);
+                recommendations.find('[data-toggle="tooltip"]').tooltip({
+                    trigger : 'hover'
+                });
+                onLoadAction(recommendations);
                 categorySorters.find('li.active').removeClass('active');
                 selection.addClass('active');
             },
@@ -60,7 +69,14 @@ $(document).ready(function () {
                 $('#errorModal').modal('show');
             }
         });
-    });
+    }
+}
+$(document).ready(function () {
+    // show tooltips
+    $('[data-toggle="tooltip"]').tooltip({
+        trigger : 'hover'
+}   );
+
     $('#reloadButton').on('click', function(e) {
         window.location.reload();
     });

@@ -43,6 +43,7 @@ function resetAndClearForm(form) {
  * @param selector The css selector matching the element(s) to enable the editor for
  */
 function enableMCE(selector) {
+    console.log(selector);
     // convert all desired textareas to use tinymce WYSIWYG editor
     tinymce.init({
         selector: selector,
@@ -71,8 +72,7 @@ function enableMCE(selector) {
  * data-id: The django model id of the target to be operated on. This is not needed for all operations (i.e. add)
  * @returns {Function}
  */
-function getModal(){
-    var lastModal = null;
+function getModal(modalContainer){
     return function () {
         var modalType = $(this).attr('data-modal-operation');
         var target = $(this).attr('data-target');
@@ -87,12 +87,17 @@ function getModal(){
             data: deleteModalMaker.serialize(),
             success: function (resp) {
                 // console.log(resp);
-                if (lastModal !== null) {
-                    $(resp.form_button).off('click');
-                    tinymce.remove();
-                    lastModal.remove()
-                }
-                $('body').append(resp.modal);
+                // console.log(resp.modal_id);
+                // console.log($(resp.modal_id));
+                // console.log($(resp.modal_id)===null);
+                // remove all prior tinymce editors. We will re-enable it for any new modal we create
+                tinymce.remove();
+                // de-register click events and remove previous modals
+                modalContainer.find(resp.modal_id).each(function () {
+                    $(this).find(resp.form_button).each(function () {$(this).off('click')});
+                    $(this).remove();
+                });
+                modalContainer.append(resp.modal);
                 var modal = $(resp.modal_id);
 
                 $(resp.form_button).on('click', callModalAjax(resp.form_id));
@@ -104,7 +109,7 @@ function getModal(){
                 var mceTexts = [];
                 $(resp.form_id).find('textarea').each(function() {
                     if (!$(this).prop('readonly')) {
-                        mceTexts.push('#' + $(this).attr('id'));
+                        mceTexts.push(resp.form_id + ' #' + $(this).attr('id'));
                     }
                 });
                 if (mceTexts.length) {
@@ -113,7 +118,6 @@ function getModal(){
                 }
                 $('#reset' + modalType.capitalize() + target.capitalize() + 'FormButton').on('click', resetAndClearCreateForm);
                 modal.modal('show');
-                lastModal = modal;
             },
             error: function () {
                 alert('Something went wrong!')

@@ -41,7 +41,7 @@ body {
     margin-left: 5px;
 }
 
-.panel-title > a {
+.panel-title > a .expand-toggle{
     display: block;
     /*padding: 15px;*/
     text-decoration: none;

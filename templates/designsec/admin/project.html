@@ -7,7 +7,7 @@
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
     <script src="/static/designsec/js/tinymce/tinymce.min.js"></script>
-    <script src="/static/designsec/js/main.js"></script>
+    <script src="/static/designsec/js/projects.js"></script>
     <script src="/static/designsec/js/admin/modal_generator.js"></script>
 
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
@@ -17,7 +17,13 @@
     <script type="text/javascript">
         $(document).ready(function () {
             // enable modals
-            $('.modal-operation').on('click', getModal());
+            var modalContainer = $('#modalContainer');
+            $('.modal-operation').on('click', getModal(modalContainer));
+            $(document).on('click', '.category-sort', registerSortOnCategory(function(recommendation) {
+                recommendation.find('.modal-operation').each(function() {
+                    $(this).on('click', getModal(modalContainer));
+                })
+            }));
         })
     </script>
 </head>
@@ -34,10 +40,10 @@
         {% endif %}
         {# Display the project description and threat model next on the page #}
         {% if project %}
-            <h1 class="text-capitalize">{{ project.name }}
+            <h1 class="text-capitalize">
                 <a href="#" role="button" class="modal-operation" data-target="project" data-id="{{ project.pk }}" data-modal-operation="edit" data-toggle="tooltip" data-placement="right" title="Edit the project title, description, threat model, and contact">
-                <span class="glyphicon glyphicon-pencil edit glyph-border" data-target="project" data-target-id="{{ project.pk }} "></span>
-            </a></h1>
+                <span class="glyphicon glyphicon-pencil glyph-border"></span>
+            </a>{{ project.name }}</h1>
             <h3>Project description</h3>
             <blockquote id="project-description">
                 {{ project.description|safe }}
@@ -58,39 +64,32 @@
     </div>
 
     <div id="main-wrapper">
+    <div>
+        <button type="button" class="btn btn-primary modal-operation" data-modal-operation="add" data-target="category" data-toggle="tooltip" title="Add a new filter category">Category <span class="badge"><span class="glyphicon glyphicon-plus"></span></span></button>
+        <button type="button" class="btn btn-primary modal-operation" data-modal-operation="add" data-target="classification" data-toggle="tooltip" title="Add a new classification">Classification <span class="badge"><span class="glyphicon glyphicon-plus"></span></span></button>
+        <button type="button" class="btn btn-primary modal-operation" data-modal-operation="add" data-target="recommendation" data-toggle="tooltip" title="Add a new recommendation">Recommendation <span class="badge"><span class="glyphicon glyphicon-plus"></span></span></button>
+    </div>
         Filter recommendations by:
         <ul id="category-sorters" class="nav nav-tabs">
             {% for c in category %}
                 <li class="category-sort" id="category-{{ c.id }}" data-toggle="tooltip" title="{{ c.help }}">
-                    <a href="#">{{ c.name }}</a></li>
+                    <a href="#">{{ c.name }}</a>
+                </li>
             {% endfor %}
-            <li data-toggle="tooltip" title="Add a new filter category">
-                <a href="#" role="button" class="modal-operation" data-target="category" data-modal-operation="add" ><span class="glyphicon glyphicon-plus add" data-target="category" ></span></a>
-            </li>
         </ul>
 
 
 {#        <div id="recommendations" class="panel-group" role="tablist" aria-multiselectable="true">#}
         <div id="recommendations" class="panel-group">
-            {% if pid %}
-                <form id="list-maker" action="{% url 'project_sort' project=pid %}"></form>
-            {% else %}
-                <form id="list-maker" action="{% url 'default_sort' %}"></form>
-            {% endif %}
+            <form id="list-maker" action="{% url 'admin_project_sort' project=pid %}"></form>
         </div>
     </div>
 </div>
 
 {# Hidden forms to use for sorting the recommendations #}
-{% if pid %}
-    <form id="category-selector" action="{% url 'project_sort' project=pid %}">
-        <input id="category-sort" type="hidden" name="category" value="{{ category_select }}"/>
-    </form>
-{% else %}
-    <form id="category-selector" action="{% url 'default_sort' %}">
-        <input id="category-sort" type="hidden" name="category" value="{{ category_select }}"/>
-    </form>
-{% endif %}
+<form id="category-selector" action="{% url 'admin_project_sort' project=pid %}">
+    <input id="category-sort" type="hidden" name="category" value="{{ category_select }}"/>
+</form>
 
 <!-- Error Modal -->
 <div id="errorModal" class="modal fade" role="dialog">
@@ -128,7 +127,7 @@
     <input type="hidden" name="target" value="">
     <input type="hidden" name="id" value="">
 </form>
-<!-- Modal code will be appended to the body -->
-
+<!-- Modal code will be added here -->
+<div id="modalContainer"></div>
 </body>
 </html>

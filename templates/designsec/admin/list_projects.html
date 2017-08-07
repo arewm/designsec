@@ -31,7 +31,7 @@
     {% endif %}
 
     <div id="main-wrapper">
-    <a href="#" class="btn btn-primary add-project">Add Project</a>
+    <a href="#" class="btn btn-primary modal-operation" data-target="project" data-id="{{ p.pk }}" data-modal-operation="add">Add Project</a>
         <table id="adminTable" class="table table-striped table-hover">
             <thead>
             <tr>
@@ -52,7 +52,7 @@
                     {#              views, and last visit#}
                     <td class="min-td-width" data-order="{{ p.pid }}" data-search="{{ p.pid }}">
                         <a href="{% url 'project' project=p.pid %}" class="btn btn-primary">View</a>
-                        <a href="{% url 'edit_project' project=p.pid %}" class="btn btn-warning">Edit</a>
+                        <a href="{% url 'admin_project' project=p.pid %}" class="btn btn-warning">Edit</a>
                         <a href="#" class="btn btn-danger modal-operation" id="delete-{{ p.pk }}" data-target="project" data-id="{{ p.pk }}" data-modal-operation="delete">Delete</a></td>
                     <td class="max-td-width"><p class="text-capitalize">{{ p.name }}</p></td>
                     <td data-order="{{ p.added|date:'U' }}"><p>{{ p.added }}</p></td>
@@ -83,6 +83,7 @@
     <input type="hidden" name="target" value="">
     <input type="hidden" name="id" value="">
 </form>
-<!-- Modal code will be appended to the body -->
+<!-- Modal code will be added here -->
+<div id="modalContainer"></div>
 </body>
 </html>
