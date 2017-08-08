@@ -78,7 +78,7 @@ function getModal(modalContainer){
         var target = $(this).attr('data-target');
         var targetId = $(this).attr('data-id');
         var formId = '#' + modalType + 'ModalMaker';
-        deleteModalMaker = $(formId);
+        var deleteModalMaker = $(formId);
         deleteModalMaker.find('input[name=id]').val(targetId);
         deleteModalMaker.find('input[name=target]').val(target);
         $.ajax({
@@ -126,7 +126,6 @@ function getModal(modalContainer){
     }
 }
 
-// todo change the action from always being reloaded to being customizable
 /**
  * Ajax function to submit a form contained a modal. If there are validation errors, they will be displayed on the form.
  * Successful responses will reload the window

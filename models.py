@@ -135,9 +135,9 @@ class Classification(models.Model):
         # Classification.objects.filter(pk=self.cleaned_data['pk'])[0].category.name == 'Test' and \
         # self.cleaned_data['category'].name == 'Test':
         if Category.objects.filter(name='All').count() == 1 and \
-            Classification.objects.filter(pk=self.pk)[0].category.name == 'All':
-            return False, ('name','This change will remove the last classification from the \'All\' category. This '
-                                  'operation is forbidden.')
+                Classification.objects.filter(pk=self.pk)[0].category.name == 'All':
+            return False, ('name', 'This change will remove the last classification from the \'All\' category. This '
+                                   'operation is forbidden.')
         return True, ''
 
     def delete(self, *args, **kwargs):
@@ -165,8 +165,8 @@ class Recommendation(models.Model):
     A single recommendation and the classifications to which it belongs. Classifications should be specific enough
     such that it only belongs to one classification per category.
 
-    ..note: The 'ALL' classification/category should always be added. We have ensured this using RecommendationModelForm,
-            but be careful if playing around with the objects directly!
+    ..note: The 'ALL' classification/category should always be added. We have ensured this using
+            RecommendationModelForm, but be careful if playing around with the objects directly!
     """
     name = models.CharField(max_length=100)
     description = models.TextField(default=None)

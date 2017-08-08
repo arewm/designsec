@@ -70,7 +70,7 @@ def get_recommendation_by_category(cat=None, p_uid=None):
                   all recommendations.
     :return: A list of classification, recommendation list tuples
     """
-    uid=None
+    uid = None
     if p_uid is not None:
         uid = uuid.UUID(p_uid)
     try:
@@ -120,6 +120,7 @@ def generate_default_view(request, category=None):
     """
     Generate the view that includes all recommendations without a project description.
     :param request: HTTP request object containing request metadata
+    :param category: the category we are sorting on. May also be present as GET parameter
     :return:
     """
     if category is None:
@@ -146,15 +147,16 @@ def generate_recommendation_by_category(request, project=None, category=None):
     Sort the recommendations for a project based on the passed POST parameters
     :param request: HTTP request object containing request metadata
     :param project: The pid that we are looking up (as a hex)
+    :param category: the category we are sorting on. May also be present as GET parameter
     :return: The rendered webpage
     """
-    # todo complete this
     if category is None:
         category = request.GET.get('category', None)
 
     recommendations, cat_obj = get_recommendation_by_category(cat=category, p_uid=project)
     try:
-        url = request.build_absolute_uri(reverse('project_category', kwargs={'project': project, 'category': cat_obj.pk}))
+        url = request.build_absolute_uri(reverse('project_category',
+                                                 kwargs={'project': project, 'category': cat_obj.pk}))
     except NoReverseMatch:
         url = request.build_absolute_uri(reverse('default_category', kwargs={'category': cat_obj.pk}))
     # the url generation is a bit of a hack. It escapes the question mark, so we need to change it back
@@ -173,10 +175,9 @@ def generate_project_view(request, project=None, category=None):
     Generate the default view for a specified project. If the project cannot be found, a default view will be generated
     :param request: HTTP request object containing request metadata
     :param project: The project to display the information for
+    :param category: the category we are sorting on. May also be present as GET parameter
     :return: The rendered webpage
     """
-    # todo keep track of the number of views and the last view as long as an admin is not logged in (maybe?)
-
     p_uid = uuid.UUID(project)
     if category is None:
         category = request.GET.get('category', None)
@@ -198,8 +199,6 @@ def generate_project_view(request, project=None, category=None):
     }
     return render(request, 'designsec/project.html', context)
 
-
-# todo ensure that user is properly authenticated before edits happen!
 
 def get_modal(request, op=None):
     """
@@ -240,12 +239,6 @@ def get_modal(request, op=None):
     return JsonResponse(data=content, safe=safe, status=status)
 
 
-# todo use jquery to get the object we are acting on and the field name for any multi-select.
-#       Generate add button dynamically?
-
-# todo when creating a recommendation, make sure that only one classification of each category exists
-#   if more than one category, present an error to be more specific and tailor it to one classification.
-
 def add_modal(request, target):
     """
     ADMIN INTERFACE
@@ -257,16 +250,12 @@ def add_modal(request, target):
     :param target: Model target that we are creating an instance for
     :return:
     """
-    # todo figure out how to pre-fill modal data with necessary information (i.e. parent from current context)
-    # todo fix the display of information in lists (i.e. string representation in multi-select box)
     formset = MODAL_MODEL_FORMS[target]
     if request.POST.get('loaded', None) is not None:
         # we have already been here once, validate and try to save the form
         loaded = formset(request.POST)
         if loaded.is_valid():
-            # todo when adding a recommendation, make sure to add it to the 'All' category!
             p = loaded.save()
-            # todo are we handling this message everywhere we need to? I am thinking about when editing projects
             return {'message': '{} created with id {}'.format(target.capitalize(), p.pk)}, 200
 
         else:
@@ -290,8 +279,6 @@ def add_modal(request, target):
     }
     return response, 200
 
-
-# todo do we need to be able to specify the action for jquery to perform when modal is closed?
 
 def edit_modal(request, target, edit_target):
     """
@@ -351,7 +338,6 @@ def delete_modal(request, target, edit_target):
     if request.POST.get('loaded', None) is not None:
         # we have already been here once, validate and try to delete the object
         loaded = form(request.POST, instance=edit_target)
-        # todo ensure that this properly protects against deleting 'ALL'
         if loaded.is_valid():
             deletable, message = edit_target.can_delete()
             if not deletable:
@@ -363,7 +349,6 @@ def delete_modal(request, target, edit_target):
     # generate the form for the first time
     f = form(instance=edit_target)
     f.make_readonly()
-    # todo figure out why readonly does not work on multi-select -- does this matter?
     context = {
         'operation': 'delete',
         'target': target,
@@ -392,7 +377,6 @@ def get_admin_recommendation_by_category(cat=None, p_uid=None):
                   all recommendations.
     :return
     """
-    # todo complete documentation
     p = get_object_or_404(Project, pid=uuid.UUID(p_uid))
     project_recommendations = p.recommendation.all()
 
@@ -422,17 +406,17 @@ def generate_admin_recommendation_by_category(request, project=None, category=No
     Sort the recommendations for a project based on the passed POST parameters
     :param request: HTTP request object containing request metadata
     :param project: The pid that we are looking up (as a hex)
+    :param category: the category we are sorting on. May also be present as GET parameter
     :return: The rendered webpage
     """
-    # todo complete this
-    # todo when making a selection, check to see if there is another instance present
     if category is None:
         category = request.GET.get('category', None)
 
     recommendations, cat_obj = get_admin_recommendation_by_category(cat=category, p_uid=project)
 
     try:
-        url = request.build_absolute_uri(reverse('admin_project_category', kwargs={'project': project, 'category': cat_obj.pk}))
+        url = request.build_absolute_uri(reverse('admin_project_category',
+                                                 kwargs={'project': project, 'category': cat_obj.pk}))
     except NoReverseMatch:
         url = request.build_absolute_uri(reverse('admin_project', kwargs={'category': cat_obj.pk}))
     # the url generation is a bit of a hack. It escapes the question mark, so we need to change it back
@@ -455,8 +439,6 @@ def save_recommendations(request, project=None):
     :param project:
     :return:
     """
-    # todo complete documentation
-
     if request.method != "POST":
         return HttpResponseNotAllowed(permitted_methods=['POST'])
     p = get_object_or_404(Project, pid=uuid.UUID(project))
@@ -480,10 +462,6 @@ def generate_admin_project_view(request, project):
     :param project: Hex representation of target project's UUID
     :return:
     """
-    # todo complete this
-    # todo for each category, make a modal to create a new recommendation
-    #       create modals with JS by passing category/classification that we belong to
-    #       when a recommendation is successfully created, save the current selection in JS and apply on new list load
     p_uid = uuid.UUID(project)
     try:
         p = get_object_or_404(Project, pid=p_uid)
@@ -501,7 +479,6 @@ def generate_admin_project_view(request, project):
     return render(request, 'designsec/admin/project.html', context)
 
 
-# todo change the behavior of list when a delete fires on the admin list - can we remember the last sorting view?
 def list_projects(request):
     """
     ADMIN INTERFACE
@@ -511,7 +488,6 @@ def list_projects(request):
     :param request: HTTP request object containing request metadata
     :return:
     """
-    # todo provide an interface to edit/add contacts, make available as a modal from admin list
     context = {'projects': []}
     for p in Project.objects.all():
         pr = {
