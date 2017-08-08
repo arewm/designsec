@@ -1,25 +1,34 @@
 # design-sec
 
-Help in the translation from a design document to implementation, specifically taking into account security and usability concerns.
+This tool is intended to help the translation from a design document to implementation, specifically taking into account
+security and usability concerns.
 
 ## High level design
 
-Django backend
+Django backend to display sorted recommendation reports for individual projects. If someone tries to access an invalid project
+id, they will be shown all possible recommendations.
 
-Either a function to generate the HTML for each sort method or a JQuery method to reorganize the elements based on the category they belong to.
+There is also an admin interface to allow reports and recommendations to be created and edited easier.
 
 Each report will have:
 * A brief description of the design
 * A brief description of the threat model
 * The contact person for the project on the KNOX SECURITY team
-* A list containing all elements that should be focused on
-
-There will be an admin interface where a specific report can be generated. Once a report is generated, it will be assigned a unique ID to be accessed statically. If someone tries to access an invalid report (including no report), all elements will be displayed. The admin interface will also allow custom elements to be generated. 
-
-*Using JQuery will be better so the admin interface can also be rearranged while keeping the selections*
+* A list containing all recommendations that should be focused on
 
 Potential sorting features are:
 * Development process
 * Code location
+* Vulnerability of protocols -- no replay, sensitive to sequence of inputs
+* Hardware/firmware recommendations
+* Server/VM recommendations
+* Usability
 * ??
+
+Long-term features
+* Integrate into some tracking software to link to bugs found
+* Allow suggested recommendations to be predicted based on a probabilistic model
+* Comment functionality for user and admin
+* Attach files to a recommendation
+* Let recommendations be customized for a specific project without having to create a new one
 
