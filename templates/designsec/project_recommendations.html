@@ -2,10 +2,10 @@
     <div class="panel panel-info">
         <div class="panel-heading">
             <h4 class="panel-title">
-            <a class="expand-toggle" role="button" data-toggle="collapse" href="#colC{{ classification.id }}">
-                {{ classification.name }}
-            </a>
-                </h4>
+                <a class="expand-toggle" role="button" data-toggle="collapse" href="#colC{{ classification.id }}">
+                    {{ classification.name }}
+                </a>
+            </h4>
         </div>
         <div id="colC{{ classification.id }}" class="collapse in" aria-expanded="true">
             <div class="panel-body">
@@ -16,15 +16,10 @@
                     <div class="panel panel-default">
                         <div class="panel-heading">
                             <h4 class="panel-title">
-                            <a class="expand-toggle" role="button" data-toggle="collapse" href="#colR{{ r.id }}">
-                                {{ r.name }}
-                            </a>
+                                <a class="expand-toggle" role="button" data-toggle="collapse" href="#colR{{ r.id }}">
+                                    {{ r.name }}
+                                </a>
                             </h4>
-                            {#                        <span class="labels">#}
-                            {#                        {% for c in cl %}#}
-                            {#                            <span class="label label-default">{{ c.name }}</span>#}
-                            {#                        {% endfor %}#}
-                            {#                        </span>#}
                         </div>
                         <div id="colR{{ r.id }}" class="collapse in" aria-expanded="true">
                             <div class="panel-body">

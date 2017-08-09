@@ -2,7 +2,7 @@
  * Make the first letter of a string capitalized
  * @returns {string}
  */
-String.prototype.capitalize = function() {
+String.prototype.capitalize = function () {
     return this.charAt(0).toUpperCase() + this.slice(1);
 };
 
@@ -58,7 +58,7 @@ function enableMCE(selector) {
         advlist_number_styles: 'default,lower-alpha,upper-alpha,lower-roman,upper-roman',
         paste_data_images: false,
         toolbar: 'styleselect | bold italic | alignleft aligncenter ' +
-                 '| bullist numlist | outdent indent | link table | code',
+        '| bullist numlist | outdent indent | link table | code',
         content_css: [
             '//fonts.googleapis.com/css?family=Lato:300,300i,400,400i',
             '//www.tinymce.com/css/codepen.min.css']
@@ -72,7 +72,7 @@ function enableMCE(selector) {
  * data-id: The django model id of the target to be operated on. This is not needed for all operations (i.e. add)
  * @returns {Function}
  */
-function getModal(modalContainer){
+function getModal(modalContainer) {
     return function () {
         var modalType = $(this).attr('data-modal-operation');
         var target = $(this).attr('data-target');
@@ -94,7 +94,9 @@ function getModal(modalContainer){
                 tinymce.remove();
                 // de-register click events and remove previous modals
                 modalContainer.find(resp.modal_id).each(function () {
-                    $(this).find(resp.form_button).each(function () {$(this).off('click')});
+                    $(this).find(resp.form_button).each(function () {
+                        $(this).off('click')
+                    });
                     $(this).remove();
                 });
                 modalContainer.append(resp.modal);
@@ -103,11 +105,11 @@ function getModal(modalContainer){
                 $(resp.form_button).on('click', callModalAjax(resp.form_id));
                 // show tooltips
                 modal.find('[data-toggle="tooltip"]').tooltip({
-                    trigger : 'hover'
+                    trigger: 'hover'
                 });
                 // Enable the mce editor if we need to
                 var mceTexts = [];
-                $(resp.form_id).find('textarea').each(function() {
+                $(resp.form_id).find('textarea').each(function () {
                     if (!$(this).prop('readonly')) {
                         mceTexts.push(resp.form_id + ' #' + $(this).attr('id'));
                     }

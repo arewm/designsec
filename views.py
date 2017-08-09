@@ -46,12 +46,14 @@ MODAL_MODEL_FORMS = {
 # CAUTION: ANY OPTIONS SET HERE WILL OVERRIDE THE OPTIONS FOR ALL OPERATIONS
 MODAL_OPTIONS = {
     'project': {
-        'select_check': 'contact'
+        'select_check': 'contact',
     },
     'recommendation': {
-        'select_check': 'classification'
+        'select_check': 'classification',
     },
-    'classification': {},
+    'classification': {
+        'select_check': 'category',
+    },
     'category': {},
     'contact': {}
 }
@@ -358,6 +360,9 @@ def delete_modal(request, target, edit_target):
         'cancel_color': 'danger',
         'id': 'pk-{}'.format(edit_target.pk)
     }
+    context.update(MODAL_OPTIONS[target])
+    # Do not include extra selections if requested by the options
+    context.pop('select_check', None)
     operation_target = 'delete{}'.format(target.capitalize())
     response = {
         'form_id': '#{}Form'.format(operation_target),

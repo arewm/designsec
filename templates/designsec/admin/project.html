@@ -22,16 +22,21 @@
         {% if messages %}
             {% autoescape off %}
                 {% for message in messages %}
-                    <div id="site-notice" class="alert {% if message.tags %} {{ message.tags }} {% else %} alert-warning {% endif %}">{{ message }}</div>
+                    <div id="site-notice"
+                         class="alert {% if message.tags %} {{ message.tags }} {% else %} alert-warning {% endif %}">{{ message }}</div>
                 {% endfor %}
             {% endautoescape %}
         {% endif %}
         {# Display the project description and threat model next on the page #}
         {% if project %}
             <h1 class="text-capitalize">
-                <a href="#" role="button" class="modal-operation" data-target="project" data-id="{{ project.pk }}" data-modal-operation="edit" data-toggle="tooltip" data-placement="right" title="Edit the project title, description, threat model, and contact">
-                <span class="glyphicon glyphicon-pencil glyph-border"></span>
-            </a><a href="#" role="button" class="modal-operation" data-target="project" data-id="{{ project.pk }}" data-modal-operation="delete" data-toggle="tooltip" data-placement="right" title="Delete the project title, description, threat model, and contact">
+                <a href="#" role="button" class="modal-operation" data-target="project" data-id="{{ project.pk }}"
+                   data-modal-operation="edit" data-toggle="tooltip" data-placement="right"
+                   title="Edit the project title, description, threat model, and contact">
+                    <span class="glyphicon glyphicon-pencil glyph-border"></span>
+                </a><a href="#" role="button" class="modal-operation" data-target="project" data-id="{{ project.pk }}"
+                       data-modal-operation="delete" data-toggle="tooltip" data-placement="right"
+                       title="Delete the project title, description, threat model, and contact">
                 <span class="glyphicon glyphicon-trash glyph-border"></span>
             </a>{{ project.name }}</h1>
             <h3>Project description</h3>
@@ -54,11 +59,17 @@
     </div>
 
     <div id="main-wrapper">
-    <div>
-        <button type="button" class="btn btn-primary modal-operation" data-modal-operation="add" data-target="category" data-toggle="tooltip" title="Add a new filter category">Category <span class="badge"><span class="glyphicon glyphicon-plus"></span></span></button>
-        <button type="button" class="btn btn-primary modal-operation" data-modal-operation="add" data-target="classification" data-toggle="tooltip" title="Add a new classification">Classification <span class="badge"><span class="glyphicon glyphicon-plus"></span></span></button>
-        <button type="button" class="btn btn-primary modal-operation" data-modal-operation="add" data-target="recommendation" data-toggle="tooltip" title="Add a new recommendation">Recommendation <span class="badge"><span class="glyphicon glyphicon-plus"></span></span></button>
-    </div>
+        <div>
+            <button type="button" class="btn btn-primary modal-operation" data-modal-operation="add"
+                    data-target="category" data-toggle="tooltip" title="Add a new filter category">Category <span
+                    class="badge"><span class="glyphicon glyphicon-plus"></span></span></button>
+            <button type="button" class="btn btn-primary modal-operation" data-modal-operation="add"
+                    data-target="classification" data-toggle="tooltip" title="Add a new classification">Classification
+                <span class="badge"><span class="glyphicon glyphicon-plus"></span></span></button>
+            <button type="button" class="btn btn-primary modal-operation" data-modal-operation="add"
+                    data-target="recommendation" data-toggle="tooltip" title="Add a new recommendation">Recommendation
+                <span class="badge"><span class="glyphicon glyphicon-plus"></span></span></button>
+        </div>
         Filter recommendations by:
         <ul id="category-sorter-parent" class="nav nav-tabs">
             {% for c in category %}
@@ -69,17 +80,17 @@
         </ul>
 
 
-{#        <div id="recommendations" class="panel-group" role="tablist" aria-multiselectable="true">#}
-{#        <form action="{% url 'save_recommendations' project=pid %}" method="POST">#}
-{#            {% csrf_token %}#}
-            <div id="recommendations" class="panel-group">
-                <form id="list-maker" action="{% url 'admin_project_sort' project=pid %}" method="post">
-                    {% csrf_token %}
-                </form>
-            </div>
-{#        </form>#}
+        {#        <div id="recommendations" class="panel-group" role="tablist" aria-multiselectable="true">#}
+        {#        <form action="{% url 'save_recommendations' project=pid %}" method="POST">#}
+        {#            {% csrf_token %}#}
+        <div id="recommendations" class="panel-group">
+            <form id="list-maker" action="{% url 'admin_project_sort' project=pid %}" method="post">
+                {% csrf_token %}
+            </form>
+        </div>
+        {#        </form>#}
 
-{#    <button class="submit-recommendations btn btn-success">Save project recommendations</button>#}
+        {#    <button class="submit-recommendations btn btn-success">Save project recommendations</button>#}
     </div>
 </div>
 
@@ -101,7 +112,7 @@
             <div id="errorModalText" class="modal-body">
             </div>
             <div class="modal-footer">
-                <button id="reloadButton"  type="button" class="btn btn-default" >Refresh</button>
+                <button id="reloadButton" type="button" class="btn btn-default">Refresh</button>
                 <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
             </div>
         </div>

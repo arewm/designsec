@@ -3,7 +3,7 @@ $(document).ready(function () {
     var modalContainer = $('#modalContainer');
     $('.modal-operation').on('click', getModal(modalContainer));
 
-    var onLoadAction = function(recommendation) {
+    var onLoadAction = function (recommendation) {
         // enable modals to be loaded for the new content
         recommendation.find('.modal-operation').each(function () {
             $(this).on('click', getModal(modalContainer));
@@ -32,7 +32,7 @@ $(document).ready(function () {
             })
         })
     };
-    var beforeSubmitAction = function(selection, categorySorters, recommendations) {
+    var beforeSubmitAction = function (selection, categorySorters, recommendations) {
         var cat = selection.attr('data-pk');
         var frm = $(document).find('#saveProjectRecommendations');
         frm.find('[name=category]').attr('value', cat);

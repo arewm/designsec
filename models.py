@@ -43,8 +43,10 @@ ALLOWED_ATTRIBUTES.update({
     'td': ['style']
 })
 ALLOWED_ATTRIBUTES['a'].extend(['target', 'rel'])
-ALLOWED_STYLES.extend(['padding-left', 'text-decoration', 'text-align', 'vertical-align'
-                       'width', 'height', 'margin-left', 'margin-right'])
+ALLOWED_STYLES.extend(
+    ['padding-left', 'text-decoration', 'text-align', 'vertical-align', 'width', 'height', 'margin-left',
+     'margin-right']
+)
 
 
 class Category(models.Model):
@@ -135,7 +137,7 @@ class Classification(models.Model):
         # Classification.objects.filter(pk=self.cleaned_data['pk'])[0].category.name == 'Test' and \
         # self.cleaned_data['category'].name == 'Test':
         if Category.objects.filter(name='All').count() == 1 and \
-                Classification.objects.filter(pk=self.pk)[0].category.name == 'All':
+                        Classification.objects.filter(pk=self.pk)[0].category.name == 'All':
             return False, ('name', 'This change will remove the last classification from the \'All\' category. This '
                                    'operation is forbidden.')
         return True, ''

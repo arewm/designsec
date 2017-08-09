@@ -4,7 +4,6 @@ from designsec.models import Category, Classification, Recommendation, Project, 
 
 
 class MakeReadOnlyModelForm(forms.ModelForm):
-
     def make_readonly(self):
         instance = getattr(self, 'instance', None)
         if instance and instance.pk:

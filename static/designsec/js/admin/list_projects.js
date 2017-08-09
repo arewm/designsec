@@ -29,7 +29,7 @@ function makeSelectAdd() {
 $(document).ready(function () {
     // show tooltips
     $('[data-toggle="tooltip"]').tooltip({
-        trigger : 'hover'
+        trigger: 'hover'
     });
     // enable modals
     var modalContainer = $('#modalContainer');

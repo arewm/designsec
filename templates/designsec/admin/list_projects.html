@@ -11,7 +11,7 @@
     <script src="/static/designsec/js/admin/modal_generator.js"></script>
     <script src="/static/designsec/js/admin/list_projects.js"></script>
 
-{#    <link rel="stylesheet" type="text/css" href="/static/designsec/css/bootstrap-modal-bs3patch.css">#}
+    {#    <link rel="stylesheet" type="text/css" href="/static/designsec/css/bootstrap-modal-bs3patch.css">#}
     <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
           integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
     <link rel="stylesheet" href="//cdn.datatables.net/1.10.15/css/jquery.dataTables.min.css">
@@ -31,7 +31,8 @@
     {% endif %}
 
     <div id="main-wrapper">
-    <a href="#" class="btn btn-primary modal-operation" data-target="project" data-id="{{ p.pk }}" data-modal-operation="add">Add Project</a>
+        <a href="#" class="btn btn-primary modal-operation" data-target="project" data-id="{{ p.pk }}"
+           data-modal-operation="add">Add Project</a>
         <table id="adminTable" class="table table-striped table-hover">
             <thead>
             <tr>
@@ -46,25 +47,28 @@
             </thead>
             <tbody>
             {% for p in projects %}
-{# Using DataTables to sort. See: https://datatables.net/manual/data/orthogonal-data for reference #}
+                {# Using DataTables to sort. See: https://datatables.net/manual/data/orthogonal-data for reference #}
                 <tr>
                     {#            permalinks, creation date, number of recommendations, updated date, number of#}
                     {#              views, and last visit#}
                     <td class="min-td-width" data-order="{{ p.pid }}" data-search="{{ p.pid }}">
                         <a href="{% url 'project' project=p.pid %}" class="btn btn-primary">View</a>
                         <a href="{% url 'admin_project' project=p.pid %}" class="btn btn-warning">Edit</a>
-                        <a href="#" class="btn btn-danger modal-operation" id="delete-{{ p.pk }}" data-target="project" data-id="{{ p.pk }}" data-modal-operation="delete">Delete</a></td>
+                        <a href="#" class="btn btn-danger modal-operation" id="delete-{{ p.pk }}" data-target="project"
+                           data-id="{{ p.pk }}" data-modal-operation="delete">Delete</a></td>
                     <td class="max-td-width"><p class="text-capitalize">{{ p.name }}</p></td>
                     <td data-order="{{ p.added|date:'U' }}"><p>{{ p.added }}</p></td>
                     <td data-order="{{ p.modified|date:'U' }}"><p>{{ p.modified }}</p></td>
                     <td><p>{{ p.rec_count }}</p></td>
                     <td><p>{{ p.last_visit }}</p></td>
-                    <td data-order="{{ p.contact }}" data-search="{{ p.contact }}"><p>{% if p.contact %}{{ p.contact }}{% else %}None{% endif %}</p></td>
+                    <td data-order="{{ p.contact }}" data-search="{{ p.contact }}"><p>
+                        {% if p.contact %}{{ p.contact }}{% else %}None{% endif %}</p></td>
                 </tr>
             {% endfor %}
             </tbody>
         </table>
-    <a href="#" class="btn btn-primary modal-operation" data-target="project" data-id="{{ p.pk }}" data-modal-operation="add">Add Project</a>
+        <a href="#" class="btn btn-primary modal-operation" data-target="project" data-id="{{ p.pk }}"
+           data-modal-operation="add">Add Project</a>
     </div>
 </div>
 <!-- Modal operation forms -->

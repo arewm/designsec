@@ -22,7 +22,7 @@ body {
 
 #main-wrapper {
     background-color: #ffffff;
-    padding:5px;
+    padding: 5px;
     margin-top: 5px;
     overflow: scroll;
 }
@@ -55,16 +55,17 @@ body {
 
 .panel-heading .expand-toggle:after {
     /* symbol for "expanded" divs */
-    font-family: 'Glyphicons Halflings';  /* essential for enabling glyphicon */
+    font-family: 'Glyphicons Halflings'; /* essential for enabling glyphicon */
     /*content: "\2212";    !* minus, taken from bootstrap.css *!*/
-    content: "\e114";       /*c hevron down, taken from bootstrap.css */
+    content: "\e114"; /*c hevron down, taken from bootstrap.css */
     float: right;
     color: grey;
 }
+
 .panel-heading .expand-toggle.collapsed:after {
     /* symbol for "collapsed" divs */
     /*content: "\2b";    !* plus, taken from bootstrap.css *!*/
-    content: "\e080";      /*chevron right, taken from bootstrap.css */
+    content: "\e080"; /*chevron right, taken from bootstrap.css */
 }
 
 #permalink {

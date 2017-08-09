@@ -17,6 +17,7 @@ urlpatterns = [
     #
     # admin interfaces
     #
+
     # unsorted project viewing interfaces
     url(r'^admin/projects/(?P<project>[0-9a-zA-Z_\-]{32})/?$', views.generate_admin_project_view, name='admin_project'),
     # sorted project viewing interfaces

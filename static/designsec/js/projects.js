@@ -14,12 +14,16 @@ var getUrlParameter = function getUrlParameter(sParam) {
         }
     }
 };
+
 function registerSortOnCategory(onLoadAction, beforeSubmitAction) {
-    if (!onLoadAction){
-        onLoadAction = function(){}
+    if (!onLoadAction) {
+        onLoadAction = function () {
+        }
     }
     if (!beforeSubmitAction) {
-        beforeSubmitAction = function(){return true}
+        beforeSubmitAction = function () {
+            return true
+        }
     }
 
     var listLoader = $('#list-maker');
@@ -28,7 +32,7 @@ function registerSortOnCategory(onLoadAction, beforeSubmitAction) {
     var recommendations = $('#recommendations');
     var categorySelection = categorySorters.children().first();
     if (category) {
-        categorySelection = categorySorters.find('[data-pk='+category+']');
+        categorySelection = categorySorters.find('[data-pk=' + category + ']');
     }
     $.ajax({
         type: listLoader.attr('method'),
@@ -37,7 +41,7 @@ function registerSortOnCategory(onLoadAction, beforeSubmitAction) {
         success: function (data) {
             recommendations.html(data);
             recommendations.find('[data-toggle="tooltip"]').tooltip({
-                trigger : 'hover'
+                trigger: 'hover'
             });
             onLoadAction(recommendations);
             categorySelection.addClass('active');
@@ -76,13 +80,14 @@ function registerSortOnCategory(onLoadAction, beforeSubmitAction) {
         }
     }
 }
+
 $(document).ready(function () {
     // show tooltips
     $('[data-toggle="tooltip"]').tooltip({
-        trigger : 'hover'
-}   );
+        trigger: 'hover'
+    });
 
-    $('#reloadButton').on('click', function(e) {
+    $('#reloadButton').on('click', function (e) {
         window.location.reload();
     });
 });
