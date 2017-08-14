@@ -43,7 +43,6 @@ function resetAndClearForm(form) {
  * @param selector The css selector matching the element(s) to enable the editor for
  */
 function enableMCE(selector) {
-    console.log(selector);
     // convert all desired textareas to use tinymce WYSIWYG editor
     tinymce.init({
         selector: selector,
@@ -86,10 +85,6 @@ function getModal(modalContainer) {
             url: deleteModalMaker.attr('action'),
             data: deleteModalMaker.serialize(),
             success: function (resp) {
-                // console.log(resp);
-                // console.log(resp.modal_id);
-                // console.log($(resp.modal_id));
-                // console.log($(resp.modal_id)===null);
                 // remove all prior tinymce editors. We will re-enable it for any new modal we create
                 tinymce.remove();
                 // de-register click events and remove previous modals
@@ -102,7 +97,7 @@ function getModal(modalContainer) {
                 modalContainer.append(resp.modal);
                 var modal = $(resp.modal_id);
 
-                $(resp.form_button).on('click', callModalAjax(resp.form_id));
+                $(resp.form_button).on('click', getModalSubmitAjax(resp.form_id));
                 // show tooltips
                 modal.find('[data-toggle="tooltip"]').tooltip({
                     trigger: 'hover'
@@ -110,7 +105,7 @@ function getModal(modalContainer) {
                 // Enable the mce editor if we need to
                 var mceTexts = [];
                 $(resp.form_id).find('textarea').each(function () {
-                    if (!$(this).prop('readonly')) {
+                    if (!$(this).prop('disabled')) {
                         mceTexts.push(resp.form_id + ' #' + $(this).attr('id'));
                     }
                 });
@@ -119,6 +114,7 @@ function getModal(modalContainer) {
                     enableMCE(mceTexts.join());
                 }
                 $('#reset' + modalType.capitalize() + target.capitalize() + 'FormButton').on('click', resetAndClearCreateForm);
+                // find and activate button to enable adding to multi-select
                 modal.modal('show');
             },
             error: function () {
@@ -129,12 +125,17 @@ function getModal(modalContainer) {
 }
 
 /**
- * Ajax function to submit a form contained a modal. If there are validation errors, they will be displayed on the form.
+ * Get the Ajax function to submit a form contained a modal. If there are validation errors, they will be displayed on
+ * the form.
+ *
  * Successful responses will reload the window
  *
  * Unknown errors will create an alert box
+ *
+ * @param formId The id of the form we are containing
+ * @return function a function to submit the modal's form
  */
-function callModalAjax(formId) {
+function getModalSubmitAjax(formId) {
     var frm = $(document).find(formId);
     return function () {
         frm.find('textarea').each(function () {

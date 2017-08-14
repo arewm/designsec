@@ -6,9 +6,9 @@ from designsec.models import Category, Classification, Recommendation, Project, 
 class MakeReadOnlyModelForm(forms.ModelForm):
     def make_readonly(self):
         instance = getattr(self, 'instance', None)
-        if instance and instance.pk:
+        if instance and instance.pk is not None:
             for field in self.fields.keys():
-                self.fields[field].widget.attrs['readonly'] = True
+                self.fields[field].widget.attrs['disabled'] = True
 
 
 class CategoryModelForm(MakeReadOnlyModelForm):
