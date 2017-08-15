@@ -65,28 +65,39 @@ function enableMCE(selector) {
 }
 
 /**
- * Get a model corresponding to the corresponding element. The function returned uses several HTML-5 attributes:
- * data-model-operation: The operation to be performed by the modal
+ * Get a modal corresponding to the corresponding element. The function returned uses several HTML-5 attributes:
+ * data-modal-operation: The operation to be performed by the modal
  * data-target: The django model target for the operation
  * data-id: The django model id of the target to be operated on. This is not needed for all operations (i.e. add)
+ *
+ * @param modalContainer The jQuery element containing the container for the modal HTML to be put
+ * @param {boolean} removeMceEditors The action to trigger first when we successfully get a modal
+ * @param {string} modalMakerIdPart the end of the ID for the form to use to generate the modal
+ * @param {function} [ajaxSuccessFunction] The function to call on a successful AJAX for the retrieved modal's action
  * @returns {Function}
  */
-function getModal(modalContainer) {
+function getModal(modalContainer, removeMceEditors, modalMakerIdPart, ajaxSuccessFunction) {
+    if (!modalMakerIdPart)
+        modalMakerIdPart = 'ModalMaker';
+    if (!ajaxSuccessFunction){
+        ajaxSuccessFunction = function () {location.reload()}
+    }
     return function () {
         var modalType = $(this).attr('data-modal-operation');
         var target = $(this).attr('data-target');
         var targetId = $(this).attr('data-id');
-        var formId = '#' + modalType + 'ModalMaker';
-        var deleteModalMaker = $(formId);
-        deleteModalMaker.find('input[name=id]').val(targetId);
-        deleteModalMaker.find('input[name=target]').val(target);
+        var formId = '#' + modalType + modalMakerIdPart;
+        var modalMaker = $(formId);
+        modalMaker.find('input[name=id]').val(targetId);
+        modalMaker.find('input[name=target]').val(target);
         $.ajax({
-            type: deleteModalMaker.attr('method'),
-            url: deleteModalMaker.attr('action'),
-            data: deleteModalMaker.serialize(),
+            type: modalMaker.attr('method'),
+            url: modalMaker.attr('action'),
+            data: modalMaker.serialize(),
             success: function (resp) {
-                // remove all prior tinymce editors. We will re-enable it for any new modal we create
-                tinymce.remove();
+                if(removeMceEditors){
+                    tinymce.remove();
+                }
                 // de-register click events and remove previous modals
                 modalContainer.find(resp.modal_id).each(function () {
                     $(this).find(resp.form_button).each(function () {
@@ -97,7 +108,7 @@ function getModal(modalContainer) {
                 modalContainer.append(resp.modal);
                 var modal = $(resp.modal_id);
 
-                $(resp.form_button).on('click', getModalSubmitAjax(resp.form_id));
+                $(resp.form_button).on('click', getModalSubmitAjax(resp.form_id, ajaxSuccessFunction));
                 // show tooltips
                 modal.find('[data-toggle="tooltip"]').tooltip({
                     trigger: 'hover'
@@ -105,7 +116,7 @@ function getModal(modalContainer) {
                 // Enable the mce editor if we need to
                 var mceTexts = [];
                 $(resp.form_id).find('textarea').each(function () {
-                    if (!$(this).prop('disabled')) {
+                    if (!($(this).prop('disabled') || $(this).prop('readonly'))) {
                         mceTexts.push(resp.form_id + ' #' + $(this).attr('id'));
                     }
                 });
@@ -113,7 +124,10 @@ function getModal(modalContainer) {
                     // We have some non-readonly texts
                     enableMCE(mceTexts.join());
                 }
+                // register reset button
                 $('#reset' + modalType.capitalize() + target.capitalize() + 'FormButton').on('click', resetAndClearCreateForm);
+                // register add buttons
+                enableMultiSelectAdd(modal);
                 // find and activate button to enable adding to multi-select
                 modal.modal('show');
             },
@@ -133,16 +147,18 @@ function getModal(modalContainer) {
  * Unknown errors will create an alert box
  *
  * @param formId The id of the form we are containing
+ * @param {callback} [ajaxSuccessFunction] Function describing action to take on success
  * @return function a function to submit the modal's form
  */
-function getModalSubmitAjax(formId) {
+function getModalSubmitAjax(formId, ajaxSuccessFunction) {
+    if (!ajaxSuccessFunction) {
+        ajaxSuccessFunction = function () {location.reload()}
+    }
     var frm = $(document).find(formId);
     return function () {
         frm.find('textarea').each(function () {
             var c = tinyMCE.get($(this).attr('id'));
             if (c !== null) {
-                console.log(c);
-                console.log($(this).attr('id'));
                 $(this).html(c.getContent());
             }
         });
@@ -151,8 +167,8 @@ function getModalSubmitAjax(formId) {
             type: frm.attr('method'),
             url: frm.attr('action'),
             data: frm.serialize(),
-            success: function () {
-                location.reload()
+            success: function (resp) {
+                ajaxSuccessFunction(resp)
             },
             error: function (jqXHR) {
                 if (jqXHR.status === 400) {
@@ -167,4 +183,28 @@ function getModalSubmitAjax(formId) {
             }
         });
     }
+}
+
+/**
+ * Enable entries to be added to multi-select form fields. This function activates the action on the plus button click
+ * and makes sure that a successful entry is inserted into the select input.
+ *
+ * @param modal The modal to search for multiple select add instances
+ */
+function enableMultiSelectAdd(modal) {
+    var modalAdd = $('#modalAddContainer');
+    modal.find('[data-select-related-target]').each(function () {
+        var relatedContainer = '#' + $(this).attr('data-select-related-target');
+        var ajaxSuccessFunction = function(resp) {
+            console.log(resp);
+            console.log(resp.pk);
+            console.log(resp.string);
+            $(relatedContainer).find('select').first().append($('<option>', {
+                value: resp.pk,
+                text: resp.string
+            }));
+            modal.modal('hide')
+        };
+        $(this).on('click', getModal(modalAdd, false, 'ModalMakerMulti', ajaxSuccessFunction));
+    })
 }

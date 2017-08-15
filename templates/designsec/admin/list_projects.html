@@ -31,7 +31,7 @@
     {% endif %}
 
     <div id="main-wrapper">
-        <a href="#" class="btn btn-primary modal-operation" data-target="project" data-id="{{ p.pk }}"
+        <a href="#" class="btn btn-primary modal-operation" data-target="project" data-id=""
            data-modal-operation="add">Add Project</a>
         <table id="adminTable" class="table table-striped table-hover">
             <thead>
@@ -67,7 +67,7 @@
             {% endfor %}
             </tbody>
         </table>
-        <a href="#" class="btn btn-primary modal-operation" data-target="project" data-id="{{ p.pk }}"
+        <a href="#" class="btn btn-primary modal-operation" data-target="project" data-id=""
            data-modal-operation="add">Add Project</a>
     </div>
 </div>
@@ -87,7 +87,13 @@
     <input type="hidden" name="target" value="">
     <input type="hidden" name="id" value="">
 </form>
+<form id="addModalMakerMulti" action="{% url 'get_modal' op='add' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="target" value="">
+    <input type="hidden" name="id" value="">
+</form>
 <!-- Modal code will be added here -->
 <div id="modalContainer"></div>
+<div id="modalAddContainer"></div>
 </body>
 </html>

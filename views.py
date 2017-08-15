@@ -46,13 +46,13 @@ MODAL_MODEL_FORMS = {
 # CAUTION: ANY OPTIONS SET HERE WILL OVERRIDE THE OPTIONS FOR ALL OPERATIONS
 MODAL_OPTIONS = {
     'project': {
-        'select_check': 'contact',
+        'select_check': ['contact'],
     },
     'recommendation': {
-        'select_check': 'classification',
+        'select_check': ['classification'],
     },
     'classification': {
-        'select_check': 'category',
+        'select_check': ['category'],
     },
     'category': {},
     'contact': {}
@@ -258,7 +258,12 @@ def add_modal(request, target):
         loaded = formset(request.POST)
         if loaded.is_valid():
             p = loaded.save()
-            return {'message': '{} created with id {}'.format(target.capitalize(), p.pk)}, 200
+            response = {
+                'message': '{} created with id {}'.format(target.capitalize(), p.pk),
+                'pk': p.pk,
+                'string': str(p)
+            }
+            return response, 200
 
         else:
             return loaded.errors.as_json(), 400

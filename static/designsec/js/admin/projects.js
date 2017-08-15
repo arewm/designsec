@@ -1,7 +1,7 @@
 $(document).ready(function () {
     // enable modals
     var modalContainer = $('#modalContainer');
-    $('.modal-operation').on('click', getModal(modalContainer));
+    $('.modal-operation').on('click', getModal(modalContainer, true));
 
     var onLoadAction = function (recommendation) {
         // enable modals to be loaded for the new content
@@ -32,7 +32,7 @@ $(document).ready(function () {
             })
         })
     };
-    var beforeSubmitAction = function (selection, categorySorters, recommendations) {
+    var beforeSubmitCheck = function (selection, categorySorters, recommendations) {
         var cat = selection.attr('data-pk');
         var frm = $(document).find('#saveProjectRecommendations');
         frm.find('[name=category]').attr('value', cat);
@@ -50,11 +50,11 @@ $(document).ready(function () {
                 selection.addClass('active');
             },
             error: function (data) {
-                $('#errorModalText').html(modalError);
+                $('#errorModalText').html(data);
                 $('#errorModal').modal('show');
             }
         });
         return false
     };
-    $(document).on('click', '.category-sorters', registerSortOnCategory(onLoadAction, beforeSubmitAction));
+    $(document).on('click', '.category-sorters', registerSortOnCategory(onLoadAction, beforeSubmitCheck));
 });

@@ -135,7 +135,13 @@
     <input type="hidden" name="target" value="">
     <input type="hidden" name="id" value="">
 </form>
+<form id="addModalMakerMulti" action="{% url 'get_modal' op='add' %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="target" value="">
+    <input type="hidden" name="id" value="">
+</form>
 <!-- Modal code will be added here -->
 <div id="modalContainer"></div>
+<div id="modalAddContainer"></div>
 </body>
 </html>

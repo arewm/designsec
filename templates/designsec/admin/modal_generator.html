@@ -17,13 +17,24 @@
                     <input type="hidden" name="loaded" value="true">
                     {% for form in formset %}
                         <div id="error_{{ form.html_name }}" class="form-error"></div>
-                        {% if form.help_text %}
-                            <p><a href="#" data-toggle="tooltip" data-viewport=".modal-content" data-placement="right"
-                                  title="{{ form.help_text }}">{{ form.label }}</a><br/>
-                                {{ form }} </p>
+                        <p>{% if form.help_text %}
+                            <a href="#" data-toggle="tooltip" data-viewport=".modal-content" data-placement="right"
+                               title="{{ form.help_text }}">{{ form.label }}</a>{% else %}{{ form.label }}{% endif %}
+                        </p>
+                        {% if form.name in select_check %}
+                            <div id="formContainerElement{{ form.name|capfirst }}"
+                                 style="display: inline-block; vertical-align: middle;">{{ form }}</div>
+                            <div style="display: inline-block; vertical-align: middle;">
+                                <button id="get{{ form.name|capfirst }}ModalButton"
+                                        data-select-related-target="formContainerElement{{ form.name|capfirst }}"
+                                        data-target="{{ form.name }}" data-id="" type="button" class="btn btn-success"
+                                        data-modal-operation="add"><span class="glyphicon glyphicon-plus"></span>
+                                </button>
+                            </div>
                         {% else %}
-                            <div>{{ form.label }}</div><br/><p>{{ form }} </p>
+                            <div>{{ form }}</div>
                         {% endif %}
+                        <br />
                     {% endfor %}
                 </form>
                 {% if operation != 'add' %}
@@ -33,7 +44,7 @@
             </div>
             <div class="modal-footer">
                 <button id="{{ operation }}{{ target|capfirst }}Button" type="button"
-                        class="btn btn-{{ success_color }}" data-operation="submit">
+                        class="btn btn-{{ success_color }}" data-modal-operation="submit">
                     Submit {{ operation|capfirst }}</button>
                 <button type="button" class="btn btn-{{ cancel_color }}" data-dismiss="modal">Cancel</button>
                 {% if operation == 'add' %}
