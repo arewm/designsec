@@ -74,13 +74,29 @@ function enableMCE(selector) {
  * @param {boolean} removeMceEditors The action to trigger first when we successfully get a modal
  * @param {string} modalMakerIdPart the end of the ID for the form to use to generate the modal
  * @param {function} [ajaxSuccessFunction] The function to call on a successful AJAX for the retrieved modal's action
+ * @param {function} [ajaxErrorFunction] The function to call on an error AJAX for the retrieved modal's action
  * @returns {Function}
  */
-function getModal(modalContainer, removeMceEditors, modalMakerIdPart, ajaxSuccessFunction) {
+function getModal(modalContainer, removeMceEditors, modalMakerIdPart, ajaxSuccessFunction, ajaxErrorFunction) {
     if (!modalMakerIdPart)
         modalMakerIdPart = 'ModalMaker';
-    if (!ajaxSuccessFunction){
-        ajaxSuccessFunction = function () {location.reload()}
+    if (!ajaxSuccessFunction) {
+        ajaxSuccessFunction = function () {
+            location.reload()
+        }
+    }
+    if (!ajaxErrorFunction) {
+        ajaxErrorFunction = function(jqXHR) {
+            if (jqXHR.status === 400) {
+                var resp = JSON.parse(jqXHR.responseJSON);
+                $.each(resp, function (k, v) {
+                    $('#error_' + k).html(v[0].message);
+                });
+            }
+            else {
+                alert('Something went wrong!')
+            }
+        }
     }
     return function () {
         var modalType = $(this).attr('data-modal-operation');
@@ -95,7 +111,7 @@ function getModal(modalContainer, removeMceEditors, modalMakerIdPart, ajaxSucces
             url: modalMaker.attr('action'),
             data: modalMaker.serialize(),
             success: function (resp) {
-                if(removeMceEditors){
+                if (removeMceEditors) {
                     tinymce.remove();
                 }
                 // de-register click events and remove previous modals
@@ -108,7 +124,7 @@ function getModal(modalContainer, removeMceEditors, modalMakerIdPart, ajaxSucces
                 modalContainer.append(resp.modal);
                 var modal = $(resp.modal_id);
 
-                $(resp.form_button).on('click', getModalSubmitAjax(resp.form_id, ajaxSuccessFunction));
+                $(resp.form_button).on('click', getModalSubmitAjax(resp.form_id, ajaxSuccessFunction, ajaxErrorFunction));
                 // show tooltips
                 modal.find('[data-toggle="tooltip"]').tooltip({
                     trigger: 'hover'
@@ -129,7 +145,7 @@ function getModal(modalContainer, removeMceEditors, modalMakerIdPart, ajaxSucces
                 // register add buttons
                 enableMultiSelectAdd(modal);
                 // find and activate button to enable adding to multi-select
-                modal.modal('show');
+                modal.modal('toggle');
             },
             error: function () {
                 alert('Something went wrong!')
@@ -142,18 +158,16 @@ function getModal(modalContainer, removeMceEditors, modalMakerIdPart, ajaxSucces
  * Get the Ajax function to submit a form contained a modal. If there are validation errors, they will be displayed on
  * the form.
  *
- * Successful responses will reload the window
+ * Successful responses will reset the form and call the success function
  *
  * Unknown errors will create an alert box
  *
  * @param formId The id of the form we are containing
- * @param {callback} [ajaxSuccessFunction] Function describing action to take on success
+ * @param {callback} ajaxSuccessFunction Function describing action to take on success
+ * @param {callback} ajaxErrorFunction Function describing action to take on error
  * @return function a function to submit the modal's form
  */
-function getModalSubmitAjax(formId, ajaxSuccessFunction) {
-    if (!ajaxSuccessFunction) {
-        ajaxSuccessFunction = function () {location.reload()}
-    }
+function getModalSubmitAjax(formId, ajaxSuccessFunction, ajaxErrorFunction) {
     var frm = $(document).find(formId);
     return function () {
         frm.find('textarea').each(function () {
@@ -168,18 +182,12 @@ function getModalSubmitAjax(formId, ajaxSuccessFunction) {
             url: frm.attr('action'),
             data: frm.serialize(),
             success: function (resp) {
+                resetForm(frm);
+                $('#' + frm.attr('data-containing-modal')).modal('hide');
                 ajaxSuccessFunction(resp)
             },
             error: function (jqXHR) {
-                if (jqXHR.status === 400) {
-                    var resp = JSON.parse(jqXHR.responseJSON);
-                    $.each(resp, function (k, v) {
-                        $('#error_' + k).html(v[0].message);
-                    });
-                }
-                else {
-                    alert('Something went wrong!')
-                }
+                ajaxErrorFunction(jqXHR);
             }
         });
     }
@@ -195,16 +203,40 @@ function enableMultiSelectAdd(modal) {
     var modalAdd = $('#modalAddContainer');
     modal.find('[data-select-related-target]').each(function () {
         var relatedContainer = '#' + $(this).attr('data-select-related-target');
-        var ajaxSuccessFunction = function(resp) {
-            console.log(resp);
-            console.log(resp.pk);
-            console.log(resp.string);
+        var ajaxSuccessFunction = function (resp) {
             $(relatedContainer).find('select').first().append($('<option>', {
                 value: resp.pk,
                 text: resp.string
             }));
-            modal.modal('hide')
         };
-        $(this).on('click', getModal(modalAdd, false, 'ModalMakerMulti', ajaxSuccessFunction));
+        var ajaxErrorFunction = function(jqXHR) {
+            if (jqXHR.status === 400) {
+                var resp = JSON.parse(jqXHR.responseJSON);
+                $.each(resp, function (k, v) {
+                    modalAdd.find('#error_' + k).html(v[0].message);
+                });
+            }
+            else {
+                alert('Something went wrong!')
+            }
+        };
+        $(this).on('click', getModal(modalAdd, false, 'ModalMakerMulti', ajaxSuccessFunction, ajaxErrorFunction));
     })
 }
+
+/**
+ * Fix for displaying multiple modal overlays
+ * src: https://stackoverflow.com/questions/19305821/multiple-modals-overlay
+ */
+$(document).ready(function () {
+    $(document).on('show.bs.modal', '.modal', function () {
+        var zIndex = 1040 + (10 * $('.modal:visible').length);
+        $(this).css('z-index', zIndex);
+        setTimeout(function () {
+            $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1).addClass('modal-stack');
+        }, 0);
+    });
+    $(document).on('hidden.bs.modal', '.modal', function () {
+        $('.modal:visible').length && $(document.body).addClass('modal-open');
+    });
+});

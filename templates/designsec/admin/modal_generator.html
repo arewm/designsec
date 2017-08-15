@@ -8,7 +8,8 @@
             <div class="modal-body">
                 {% if operation == 'delete' %}<p>Are you sure you want to delete the {{ target }}:</p> {% endif %}
                 <form id="{{ operation }}{{ target|capfirst }}Form" method="post"{% if select_check %}
-                      data-check-select="{{ select_check }}"{% endif %} action="{% url 'get_modal' op=operation %}">
+                      data-check-select="{{ select_check }}"{% endif %} action="{% url 'get_modal' op=operation %}"
+                      data-containing-modal="{{ operation }}{{ target|capfirst }}Modal">
                     {% csrf_token %}
                     {{ formset.management_form }}
                     <div id="error_{{ target }}" class="form-error"></div>
