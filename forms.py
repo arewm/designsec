@@ -8,7 +8,11 @@ class MakeReadOnlyModelForm(forms.ModelForm):
         instance = getattr(self, 'instance', None)
         if instance and instance.pk is not None:
             for field in self.fields.keys():
-                self.fields[field].widget.attrs['disabled'] = True
+                widget = self.fields[field].widget
+                if isinstance(widget, forms.widgets.SelectMultiple):
+                    widget.attrs['disabled'] = True
+                else:
+                    widget.attrs['readonly'] = True
 
 
 class CategoryModelForm(MakeReadOnlyModelForm):
