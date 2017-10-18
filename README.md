@@ -1,7 +1,11 @@
 # design-sec
 
-This tool is intended to help the translation from a design document to implementation, specifically taking into account
-security and usability concerns.
+This is a proof of concept of a tool intended to help translate from requirements to implementation, by
+ensuring that developers are aware of security and usability concerns.
+
+Further development of this proof of concept was abandoned as a bigger re-architecture of the review process is needed
+in order to prevent this interface from being just another site to check. I will still leave the original design
+details below for reference.
 
 ## High level design
 
